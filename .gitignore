@@ -1,1 +1,13 @@
+# Local agent rules (not shared)
 /frontend/agents
+
+# Root tooling deps (husky, commitlint)
+node_modules
+
+# Secrets - never commit (rules §1)
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store

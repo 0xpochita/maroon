@@ -1,0 +1,27 @@
+EMDASH=$(printf '\342\200\224')
+
+# Rules section 1: never commit secrets. Defense beyond .gitignore.
+secrets=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -iE '(^|/)\.env($|\.)|\.pem$|\.key$|(^|/)id_rsa|credential|service-account|secret' || true)
+if [ -n "$secrets" ]; then
+  echo "pre-commit: refusing to commit secret-like files:" >&2
+  printf '  %s\n' "$secrets" >&2
+  echo "If intentional, rename or add to .gitignore." >&2
+  exit 1
+fi
+
+# Rules section 2: em-dash (U+2014) is a hard blocker.
+if git diff --cached -U0 --diff-filter=ACM | grep '^+' | grep -q "$EMDASH"; then
+  echo "pre-commit: em-dash (U+2014) in staged changes is forbidden. Use '-' or ':'." >&2
+  exit 1
+fi
+
+# Lint staged frontend files with biome (rules sections 4 and 18).
+files=$(git diff --cached --name-only --diff-filter=ACMR \
+  | grep -E '^frontend/.*\.(ts|tsx|js|jsx|json|jsonc|css)$' | sed 's#^frontend/##' || true)
+if [ -n "$files" ]; then
+  ( cd frontend && pnpm exec biome check $files ) || {
+    echo "pre-commit: biome check failed. Fix: pnpm --dir frontend exec biome check --write" >&2
+    exit 1
+  }
+fi

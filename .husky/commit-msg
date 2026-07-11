@@ -1,0 +1,10 @@
+# Rules section 2: em-dash (U+2014) is a hard blocker, forbidden everywhere.
+# Match by UTF-8 bytes so this hook file itself stays em-dash free.
+EMDASH=$(printf '\342\200\224')
+if grep -q "$EMDASH" "$1"; then
+  echo "commit-msg: em-dash (U+2014) is forbidden. Use '-' or ':'." >&2
+  exit 1
+fi
+
+# Rules section 1: Conventional Commits.
+pnpm exec commitlint --edit "$1"
