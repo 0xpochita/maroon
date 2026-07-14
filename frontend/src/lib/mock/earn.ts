@@ -17,8 +17,10 @@ const euler: Protocol = {
   name: "Euler Finance",
   logo: `${LOGO_BASE}/euler-logo.png`,
 };
+const lido: Protocol = { name: "Lido", logo: `${LOGO_BASE}/lido-logo.svg` };
 
 const usdcLogo = `${LOGO_BASE}/usdc-logo.webp`;
+const stethLogo = "/Assets/Images/Logo/logo-token/steth-logo.svg";
 
 const CHAIN_BASE = "/Assets/Images/Logo/logo-chain";
 
@@ -131,6 +133,26 @@ export const vaults: Vault[] = [
     tvlUsd: 3_200_000,
     categories: ["stablecoins", "lending", "new"],
   },
+  {
+    id: "steth-lido-eth",
+    asset: "stETH",
+    assetLogo: stethLogo,
+    protocol: lido,
+    chain: "Ethereum",
+    apy: 3.2,
+    tvlUsd: 31_800_000,
+    categories: ["liquid-staking", "eth"],
+  },
+  {
+    id: "steth-lido-arb",
+    asset: "stETH",
+    assetLogo: stethLogo,
+    protocol: lido,
+    chain: "Arbitrum",
+    apy: 3.4,
+    tvlUsd: 4_600_000,
+    categories: ["liquid-staking", "new"],
+  },
 ];
 
 export const portfolio: PortfolioSummary = {
@@ -152,7 +174,6 @@ export const categories = [
   "Stablecoins",
   "ETH",
   "Lending",
-  "LP",
   "Liquid staking",
   "RWA",
   "New",
