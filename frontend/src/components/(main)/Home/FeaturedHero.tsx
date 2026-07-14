@@ -98,7 +98,7 @@ function FeaturedList() {
       <div className="mt-5">
         <button
           type="button"
-          className="w-full rounded-xl bg-success py-3 text-sm font-semibold text-white transition-colors hover:bg-success/90"
+          className="w-full rounded-xl bg-success py-3 text-sm font-semibold text-white shadow-[0_4px_0_0_var(--color-success-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-success-hover)]"
         >
           Start earning
         </button>

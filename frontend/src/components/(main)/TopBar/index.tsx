@@ -55,7 +55,7 @@ function TopBarActions() {
       <Stat label="Earning" value={formatUsd(portfolio.earningUsd)} accent />
       <button
         type="button"
-        className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+        className="rounded-xl bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)]"
       >
         Deposit
       </button>
