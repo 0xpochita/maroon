@@ -1,8 +1,10 @@
 import { Info, TrendingUp } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { formatCompactUsd, formatPercent } from "@/lib/format";
 import { chainLogos } from "@/lib/mock/earn";
 import type { Vault } from "@/types/earn";
+import { EarnButton } from "../EarnButton";
 
 export function VaultCard({ vault }: { vault: Vault }) {
   return (
@@ -10,19 +12,19 @@ export function VaultCard({ vault }: { vault: Vault }) {
       <VaultHeader vault={vault} />
       <VaultStats vault={vault} />
       <div className="mt-auto flex gap-2">
-        <button
-          type="button"
+        <Link
+          href={`/vault/${vault.id}`}
           className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary/10 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
         >
           <Info className="size-4" />
           View details
-        </button>
-        <button
-          type="button"
+        </Link>
+        <EarnButton
+          vault={vault}
           className="flex flex-1 items-center justify-center rounded-xl bg-success/10 py-3 text-sm font-semibold text-success transition-colors hover:bg-success/20"
         >
           Earn
-        </button>
+        </EarnButton>
       </div>
     </article>
   );

@@ -181,6 +181,10 @@ export const vaults: Vault[] = [
   },
 ];
 
+export function getVault(id: string) {
+  return vaults.find((vault) => vault.id === id);
+}
+
 export const portfolio: PortfolioSummary = {
   totalUsd: 1284.52,
   earningUsd: 1000,
