@@ -1,172 +1,156 @@
+import { Bookmark, Share2 } from "lucide-react";
 import Image from "next/image";
-import { protocolFilters } from "@/lib/mock/earn";
-import { StepDecor } from "./StepDecor";
+import { formatCompactUsd, formatPercent } from "@/lib/format";
+import { earnPlans, vaults } from "@/lib/mock/earn";
+import { ActivityFeed } from "./ActivityFeed";
 import { YieldChart } from "./YieldChart";
 
-const DEFI = "/Assets/Images/Logo/logo-defi";
-const CHAIN = "/Assets/Images/Logo/logo-chain";
-
-interface HowStep {
-  title: string;
-  desc: string;
-}
-
-const STEPS: HowStep[] = [
-  { title: "Add money", desc: "Deposit USDC. No crypto experience needed." },
-  {
-    title: "Pick a plan",
-    desc: "Safe, Balanced, or Degen. You choose the risk.",
-  },
-  { title: "Earn hands-free", desc: "Your balance grows. Withdraw anytime." },
-];
-
-interface Stat {
-  label: string;
-  value: string;
-  logos?: string[];
-}
-
-const STATS: Stat[] = [
-  {
-    label: "Total TVL",
-    value: "$30.9M",
-    logos: [
-      `${DEFI}/usdc-logo.webp`,
-      `${DEFI}/aave-logo.webp`,
-      `${DEFI}/morpho-logo.webp`,
-      `${DEFI}/euler-logo.png`,
-    ],
-  },
-  { label: "APY range", value: "5.8-23.7%" },
-  { label: "Protocols", value: "3" },
-  {
-    label: "Chains",
-    value: "3",
-    logos: [`${CHAIN}/base-logo.jpg`, `${CHAIN}/arb-logo.svg`],
-  },
-];
+const FEATURED = vaults.slice(0, 3);
+const DOT_CLASS = ["bg-primary", "bg-high", "bg-success"];
+const FEATURED_TVL = FEATURED.reduce((sum, vault) => sum + vault.tvlUsd, 0);
+const HERO_CHIPS = [earnPlans[0], earnPlans[2]];
 
 export function FeaturedHero() {
   return (
-    <article className="flex flex-col rounded-card border border-border bg-surface p-6">
-      <HeroTop />
-      <HowItWorks />
-      <HeroStats />
-    </article>
-  );
-}
-
-function HeroTop() {
-  return (
-    <div className="grid gap-6 md:grid-cols-2 md:items-center">
-      <HeroCopy />
-      <HeroChart />
-    </div>
-  );
-}
-
-function HeroCopy() {
-  return (
-    <div>
-      <h2 className="mt-2 text-3xl font-bold leading-tight tracking-tight">
-        Put your money to work. Up to 23.70% APY.
-      </h2>
-      <p className="mt-3 text-muted-foreground">
-        Real DeFi yield in one tap. No wallet, gas, or chains to manage.
-      </p>
-      <button
-        type="button"
-        className="mt-6 rounded-full bg-success px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-success/90"
-      >
-        Start earning
-      </button>
-      <div className="mt-6 flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">Powered by</span>
-        <div className="flex -space-x-2">
-          {protocolFilters.map((protocol) => (
-            <Image
-              key={protocol.name}
-              src={protocol.logo}
-              alt={protocol.name}
-              width={24}
-              height={24}
-              className="rounded-full border-2 border-surface bg-surface"
-            />
-          ))}
+    <div className="flex flex-col gap-3">
+      <article className="flex flex-col rounded-2xl border border-border bg-surface p-5">
+        <FeaturedTop />
+        <div className="mt-5 grid gap-6 md:grid-cols-2">
+          <FeaturedList />
+          <FeaturedChart />
         </div>
-      </div>
+      </article>
+      <FeaturedFooter />
     </div>
   );
 }
 
-function HeroChart() {
+function FeaturedTop() {
   return (
-    <div className="rounded-xl bg-muted/60 p-5">
-      <div className="flex items-baseline justify-between">
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <Image
+          src={FEATURED[0].assetLogo}
+          alt="USDC"
+          width={44}
+          height={44}
+          className="size-11 rounded-xl object-contain"
+        />
         <div>
-          <p className="text-3xl font-bold text-success">+18.4%</p>
-          <p className="text-xs text-muted-foreground">avg. yield, 12 months</p>
+          <p className="text-xs text-muted-foreground">
+            Stablecoin yield · USDC
+          </p>
+          <h2 className="text-lg font-bold">Top USDC vaults</h2>
         </div>
-        <p className="text-xs text-muted-foreground">$30.9M TVL</p>
       </div>
-      <div className="mt-4">
+      <div className="flex items-center gap-1 text-muted-foreground">
+        <button
+          type="button"
+          aria-label="Share"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <Share2 className="size-4" />
+        </button>
+        <button
+          type="button"
+          aria-label="Save"
+          className="flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <Bookmark className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedList() {
+  return (
+    <div className="flex flex-col">
+      <ul className="divide-y divide-border">
+        {FEATURED.map((vault) => (
+          <li
+            key={vault.id}
+            className="flex items-center gap-3 py-3 first:pt-0"
+          >
+            <Image
+              src={vault.protocol.logo}
+              alt={vault.protocol.name}
+              width={28}
+              height={28}
+              className="size-7 shrink-0 rounded-full object-contain"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{vault.protocol.name}</p>
+              <p className="text-xs text-muted-foreground">{vault.chain}</p>
+            </div>
+            <span className="text-lg font-bold text-success">
+              {formatPercent(vault.apy)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-5 border-t border-border pt-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Recent activity
+        </p>
+        <ActivityFeed />
+      </div>
+      <div className="mt-5">
+        <button
+          type="button"
+          className="w-full rounded-xl bg-success py-3 text-sm font-semibold text-white transition-colors hover:bg-success/90"
+        >
+          Start earning
+        </button>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {formatCompactUsd(FEATURED_TVL)} TVL
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedChart() {
+  return (
+    <div className="flex flex-col">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {FEATURED.map((vault, index) => (
+          <span key={vault.id} className="flex items-center gap-1.5">
+            <span className={`size-2 rounded-full ${DOT_CLASS[index]}`} />
+            {vault.protocol.name}
+            <span className="font-semibold text-foreground">
+              {formatPercent(vault.apy)}
+            </span>
+          </span>
+        ))}
+      </div>
+      <div className="mt-3 min-h-48 flex-1">
         <YieldChart />
       </div>
     </div>
   );
 }
 
-function HowItWorks() {
+function FeaturedFooter() {
   return (
-    <div className="mt-8 border-t border-border pt-6">
-      <p className="font-semibold">How it works</p>
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        {STEPS.map((step, index) => (
-          <Step key={step.title} step={step} index={index} />
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-1.5">
+        <span className="h-1.5 w-5 rounded-full bg-foreground" />
+        {["a", "b", "c"].map((dot) => (
+          <span key={dot} className="size-1.5 rounded-full bg-border" />
         ))}
       </div>
-    </div>
-  );
-}
-
-function Step({ step, index }: { step: HowStep; index: number }) {
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-border bg-surface p-5">
-      <StepDecor seed={index} />
-      <div className="relative z-10">
-        <span className="flex size-8 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
-          {index + 1}
-        </span>
-        <p className="mt-3 font-semibold">{step.title}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{step.desc}</p>
+      <div className="flex gap-2">
+        {HERO_CHIPS.map((plan) => (
+          <button
+            key={plan.id}
+            type="button"
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {plan.name} · {formatPercent(plan.apy)}
+          </button>
+        ))}
       </div>
-    </div>
-  );
-}
-
-function HeroStats() {
-  return (
-    <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
-      {STATS.map((stat) => (
-        <div key={stat.label}>
-          <p className="text-lg font-bold">{stat.value}</p>
-          <p className="text-xs text-muted-foreground">{stat.label}</p>
-          {stat.logos ? (
-            <div className="mt-2 flex -space-x-1.5">
-              {stat.logos.map((logo) => (
-                <Image
-                  key={logo}
-                  src={logo}
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="rounded-full border-2 border-surface bg-surface"
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ))}
     </div>
   );
 }

@@ -20,6 +20,13 @@ const euler: Protocol = {
 
 const usdcLogo = `${LOGO_BASE}/usdc-logo.webp`;
 
+const CHAIN_BASE = "/Assets/Images/Logo/logo-chain";
+
+export const chainLogos: Record<string, string> = {
+  Base: `${CHAIN_BASE}/base-logo.jpg`,
+  Arbitrum: `${CHAIN_BASE}/arb-logo.svg`,
+};
+
 export const earnPlans: EarnPlan[] = [
   {
     id: "safe",

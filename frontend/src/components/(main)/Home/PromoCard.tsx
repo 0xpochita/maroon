@@ -3,7 +3,7 @@ import { protocolFilters } from "@/lib/mock/earn";
 
 export function PromoCard() {
   return (
-    <div className="relative overflow-hidden rounded-card border border-border bg-gradient-to-br from-primary-subtle to-success-subtle p-5">
+    <div className="rounded-card border border-border bg-surface p-5">
       <div className="flex -space-x-2">
         {protocolFilters.map((protocol) => (
           <Image
