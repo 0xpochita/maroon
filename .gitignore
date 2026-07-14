@@ -1,6 +1,9 @@
 # Local agent rules (not shared)
 /frontend/agents
 
+# Planning docs (local only)
+/docs
+
 # Root tooling deps (husky, commitlint)
 node_modules
 
