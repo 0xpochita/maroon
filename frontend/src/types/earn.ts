@@ -31,6 +31,7 @@ export interface Vault {
   chain: string;
   apy: number;
   tvlUsd: number;
+  categories: string[];
 }
 
 export interface PortfolioSummary {

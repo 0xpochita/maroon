@@ -1,7 +1,11 @@
-import { Bell, ChevronDown, Gift, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { formatUsd } from "@/lib/format";
 import { portfolio } from "@/lib/mock/earn";
+import { NotificationMenu } from "../NotificationMenu";
+import { ProfileMenu } from "../ProfileMenu";
+import { WalletMenu } from "../WalletMenu";
 
 export function TopBar() {
   return (
@@ -17,7 +21,7 @@ export function TopBar() {
 
 function Brand() {
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <Link href="/" className="flex shrink-0 items-center gap-2">
       <Image
         src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
         alt="Maroon"
@@ -26,7 +30,7 @@ function Brand() {
         priority
       />
       <span className="text-lg font-semibold tracking-tight">Maroon</span>
-    </div>
+    </Link>
   );
 }
 
@@ -46,7 +50,7 @@ function SearchField() {
 
 function TopBarActions() {
   return (
-    <div className="ml-auto flex items-center gap-4">
+    <div className="ml-auto flex items-center gap-3">
       <Stat label="Portfolio" value={formatUsd(portfolio.totalUsd)} />
       <Stat label="Earning" value={formatUsd(portfolio.earningUsd)} accent />
       <button
@@ -55,20 +59,9 @@ function TopBarActions() {
       >
         Deposit
       </button>
-      <IconButton label="Rewards">
-        <Gift className="size-5" />
-      </IconButton>
-      <IconButton label="Notifications">
-        <Bell className="size-5" />
-      </IconButton>
-      <button
-        type="button"
-        aria-label="Account"
-        className="flex items-center gap-1"
-      >
-        <span className="size-9 rounded-full bg-gradient-to-br from-primary to-warning" />
-        <ChevronDown className="size-4 text-muted-foreground" />
-      </button>
+      <WalletMenu />
+      <NotificationMenu />
+      <ProfileMenu />
     </div>
   );
 }
@@ -89,23 +82,5 @@ function Stat({
         {value}
       </p>
     </div>
-  );
-}
-
-function IconButton({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className="flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
-    >
-      {children}
-    </button>
   );
 }

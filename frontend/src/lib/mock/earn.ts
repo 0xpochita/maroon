@@ -25,6 +25,7 @@ const CHAIN_BASE = "/Assets/Images/Logo/logo-chain";
 export const chainLogos: Record<string, string> = {
   Base: `${CHAIN_BASE}/base-logo.jpg`,
   Arbitrum: `${CHAIN_BASE}/arb-logo.svg`,
+  Ethereum: `${CHAIN_BASE}/eth-logo.svg`,
 };
 
 export const earnPlans: EarnPlan[] = [
@@ -78,6 +79,7 @@ export const vaults: Vault[] = [
     chain: "Base",
     apy: 5.8,
     tvlUsd: 42_300_000,
+    categories: ["stablecoins", "lending"],
   },
   {
     id: "usdc-morpho-base",
@@ -87,6 +89,7 @@ export const vaults: Vault[] = [
     chain: "Base",
     apy: 9.2,
     tvlUsd: 15_100_000,
+    categories: ["stablecoins", "lending"],
   },
   {
     id: "usdc-euler-base",
@@ -96,6 +99,7 @@ export const vaults: Vault[] = [
     chain: "Base",
     apy: 12.1,
     tvlUsd: 6_400_000,
+    categories: ["stablecoins", "lending", "new"],
   },
   {
     id: "usdc-aave-arb",
@@ -105,6 +109,7 @@ export const vaults: Vault[] = [
     chain: "Arbitrum",
     apy: 6.4,
     tvlUsd: 28_900_000,
+    categories: ["stablecoins", "lending"],
   },
   {
     id: "usdc-morpho-eth",
@@ -114,6 +119,7 @@ export const vaults: Vault[] = [
     chain: "Ethereum",
     apy: 8.1,
     tvlUsd: 19_700_000,
+    categories: ["stablecoins", "lending", "eth"],
   },
   {
     id: "usdc-euler-arb",
@@ -123,6 +129,7 @@ export const vaults: Vault[] = [
     chain: "Arbitrum",
     apy: 14.3,
     tvlUsd: 3_200_000,
+    categories: ["stablecoins", "lending", "new"],
   },
 ];
 
@@ -146,7 +153,7 @@ export const categories = [
   "ETH",
   "Lending",
   "LP",
-  "Restaking",
+  "Liquid staking",
   "RWA",
   "New",
 ];
