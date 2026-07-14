@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { EarnFeed } from "../EarnFeed";
-import { VaultGrid } from "../VaultGrid";
+import { AllVaults } from "./AllVaults";
 import { FeaturedHero } from "./FeaturedHero";
 import { HomeRail } from "./HomeRail";
 
@@ -12,21 +10,7 @@ export function Home() {
         <FeaturedHero />
         <HomeRail />
       </div>
-      <EarnFeed />
-      <section>
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">All vaults</h2>
-          <Link
-            href="/defi"
-            className="text-sm font-semibold text-primary hover:underline"
-          >
-            Explore all
-          </Link>
-        </div>
-        <div className="mt-4">
-          <VaultGrid />
-        </div>
-      </section>
+      <AllVaults />
     </div>
   );
 }

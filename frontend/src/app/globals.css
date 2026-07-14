@@ -10,10 +10,10 @@
   --color-foreground: #14151a;
   --color-muted-foreground: #6b7280;
 
-  --color-primary: #4b57e6;
-  --color-primary-hover: #3a45c9;
+  --color-primary: #5b6ef5;
+  --color-primary-hover: #4a5ce6;
   --color-primary-foreground: #ffffff;
-  --color-primary-subtle: #eef0fc;
+  --color-primary-subtle: #eef0fe;
 
   --color-success: #12a150;
   --color-success-subtle: #e7f6ee;
@@ -31,4 +31,8 @@
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }
