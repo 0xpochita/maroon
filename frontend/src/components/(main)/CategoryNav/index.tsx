@@ -46,11 +46,15 @@ export function CategoryNav() {
         {CATEGORY_TABS.map((label) => {
           const slug = label.toLowerCase().replace(/\s+/g, "-");
           const isActive = pathname === "/defi" && active === slug;
+          const className =
+            label === "New"
+              ? `whitespace-nowrap rounded-full px-2.5 py-0.5 font-medium transition-colors ${isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground hover:text-foreground"}`
+              : `whitespace-nowrap font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`;
           return (
             <Link
               key={label}
               href={`/defi?category=${slug}`}
-              className={`whitespace-nowrap font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={className}
             >
               {label}
             </Link>

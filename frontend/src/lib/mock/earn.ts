@@ -19,8 +19,14 @@ const euler: Protocol = {
 };
 const lido: Protocol = { name: "Lido", logo: `${LOGO_BASE}/lido-logo.svg` };
 
+const TOKEN_BASE = "/Assets/Images/Logo/logo-token";
+const appleLogo = `${TOKEN_BASE}/apple-logo.avif`;
+const nvidiaLogo = `${TOKEN_BASE}/nvidia-logo.avif`;
+const apple: Protocol = { name: "Apple", logo: appleLogo };
+const nvidia: Protocol = { name: "Nvidia", logo: nvidiaLogo };
+
 const usdcLogo = `${LOGO_BASE}/usdc-logo.webp`;
-const stethLogo = "/Assets/Images/Logo/logo-token/steth-logo.svg";
+const stethLogo = `${TOKEN_BASE}/steth-logo.svg`;
 
 const CHAIN_BASE = "/Assets/Images/Logo/logo-chain";
 
@@ -152,6 +158,26 @@ export const vaults: Vault[] = [
     apy: 3.4,
     tvlUsd: 4_600_000,
     categories: ["liquid-staking", "new"],
+  },
+  {
+    id: "aapl-rwa-eth",
+    asset: "AAPL",
+    assetLogo: appleLogo,
+    protocol: apple,
+    chain: "Ethereum",
+    apy: 4.5,
+    tvlUsd: 8_900_000,
+    categories: ["rwa"],
+  },
+  {
+    id: "nvda-rwa-base",
+    asset: "NVDA",
+    assetLogo: nvidiaLogo,
+    protocol: nvidia,
+    chain: "Base",
+    apy: 6.8,
+    tvlUsd: 5_300_000,
+    categories: ["rwa", "new"],
   },
 ];
 
