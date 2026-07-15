@@ -1,8 +1,10 @@
+"use client";
+
 import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
-import { portfolio } from "@/lib/mock/earn";
 import { NotificationMenu } from "../NotificationMenu";
 import { ProfileMenu } from "../ProfileMenu";
 import { WalletMenu } from "../WalletMenu";
@@ -49,12 +51,18 @@ function SearchField() {
 }
 
 function TopBarActions() {
+  const { status, balanceUsd, openDeposit } = useAccount();
+
+  if (status !== "ready") {
+    return <AuthButtons />;
+  }
+
   return (
     <div className="ml-auto flex items-center gap-3">
-      <Stat label="Portfolio" value={formatUsd(portfolio.totalUsd)} />
-      <Stat label="Earning" value={formatUsd(portfolio.earningUsd)} accent />
+      <Stat label="Balance" value={formatUsd(balanceUsd ?? 0)} />
       <button
         type="button"
+        onClick={openDeposit}
         className="rounded-xl bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)]"
       >
         Deposit
@@ -62,6 +70,31 @@ function TopBarActions() {
       <WalletMenu />
       <NotificationMenu />
       <ProfileMenu />
+    </div>
+  );
+}
+
+function AuthButtons() {
+  const { promptLogin, status } = useAccount();
+  const busy = status === "connecting";
+  return (
+    <div className="ml-auto flex items-center gap-2">
+      <button
+        type="button"
+        onClick={promptLogin}
+        disabled={busy}
+        className="rounded-xl px-4 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+      >
+        Log In
+      </button>
+      <button
+        type="button"
+        onClick={promptLogin}
+        disabled={busy}
+        className="rounded-xl bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)] disabled:opacity-50"
+      >
+        {busy ? "..." : "Sign Up"}
+      </button>
     </div>
   );
 }

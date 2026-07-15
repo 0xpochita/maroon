@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
+import { useAccount } from "@/hooks/useAccount";
 import { protocolFilters } from "@/lib/mock/earn";
 
 export function PromoCard() {
+  const { openDeposit } = useAccount();
   return (
     <div className="rounded-card border border-border bg-surface p-5">
       <div className="flex -space-x-2">
@@ -22,6 +26,7 @@ export function PromoCard() {
       </p>
       <button
         type="button"
+        onClick={openDeposit}
         className="mt-4 w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)]"
       >
         Deposit

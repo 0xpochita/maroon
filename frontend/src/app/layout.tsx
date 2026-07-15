@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { Providers } from "@/components/providers/Providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,16 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
-        {children}
+        <Providers
+          magicApiKey={process.env.MAGIC_API_KEY}
+          particle={{
+            projectId: process.env.PARTICLE_PROJECT_ID,
+            clientKey: process.env.PARTICLE_CLIENT_KEY,
+            appId: process.env.PARTICLE_APP_ID,
+          }}
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );

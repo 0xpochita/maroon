@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAccount } from "@/hooks/useAccount";
 import { formatPercent, formatUsd } from "@/lib/format";
 import type { Vault } from "@/types/earn";
 import { VaultAvatar } from "../VaultAvatar";
@@ -20,9 +21,19 @@ export function EarnButton({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const { status, promptLogin } = useAccount();
+
+  const handleClick = () => {
+    if (status !== "ready") {
+      promptLogin();
+      return;
+    }
+    setOpen(true);
+  };
+
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={className}>
+      <button type="button" onClick={handleClick} className={className}>
         {children}
       </button>
       <AnimatePresence>
@@ -35,10 +46,25 @@ export function EarnButton({
 }
 
 function EarnModal({ vault, onClose }: { vault: Vault; onClose: () => void }) {
+  const { deposit } = useAccount();
   const [amount, setAmount] = useState("100");
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>();
   const parsed = Number(amount) || 0;
   const yearly = (parsed * vault.apy) / 100;
+
+  const confirm = async () => {
+    setSubmitting(true);
+    setError(undefined);
+    const res = await deposit(vault, parsed);
+    setSubmitting(false);
+    if (res.ok) {
+      setDone(true);
+    } else {
+      setError(res.error ?? "Deposit failed");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -127,13 +153,18 @@ function EarnModal({ vault, onClose }: { vault: Vault; onClose: () => void }) {
               <Row label="Network" value={vault.chain} />
             </div>
 
+            {error ? (
+              <p className="mt-4 rounded-lg bg-warning-subtle px-3 py-2 text-center text-xs text-warning">
+                {error}
+              </p>
+            ) : null}
             <button
               type="button"
-              onClick={() => setDone(true)}
-              disabled={parsed <= 0}
-              className="mt-6 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)] disabled:opacity-50"
+              onClick={confirm}
+              disabled={parsed <= 0 || submitting}
+              className="mt-6 w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)] disabled:opacity-50 disabled:shadow-none"
             >
-              Confirm deposit
+              {submitting ? "Depositing..." : "Confirm deposit"}
             </button>
             <p className="mt-3 text-center text-xs text-muted-foreground">
               One tap. No gas, no chains to manage.

@@ -2,9 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { ChevronDown, Moon, Settings, User } from "lucide-react";
+import { ChevronDown, LogOut, Moon, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useAccount } from "@/hooks/useAccount";
+
+function shorten(address?: string) {
+  return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "";
+}
 
 interface MenuItem {
   icon: LucideIcon;
@@ -38,6 +43,7 @@ export function ProfileMenu() {
 
 function ProfileDropdown({ onClose }: { onClose: () => void }) {
   const [dark, setDark] = useState(false);
+  const { address, logout } = useAccount();
   return (
     <>
       <button
@@ -54,18 +60,11 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
         exit={{ opacity: 0, scale: 0.96, y: -4 }}
         transition={{ duration: 0.15 }}
       >
-        <div className="flex items-center justify-between gap-2 px-2 py-2">
-          <div className="flex items-center gap-2">
-            <span className="size-8 rounded-full bg-gradient-to-br from-primary to-warning" />
-            <span className="text-sm font-semibold">0x3f..a1</span>
-          </div>
-          <button
-            type="button"
-            aria-label="Settings"
-            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted"
-          >
-            <Settings className="size-4" />
-          </button>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <span className="size-8 rounded-full bg-gradient-to-br from-primary to-warning" />
+          <span className="font-mono text-sm font-semibold">
+            {shorten(address)}
+          </span>
         </div>
         <div className="my-1 h-px bg-border" />
         <ul>
@@ -88,6 +87,18 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
               className={`absolute top-0.5 size-4 rounded-full bg-surface transition-all ${dark ? "left-[18px]" : "left-0.5"}`}
             />
           </span>
+        </button>
+        <div className="my-1 h-px bg-border" />
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            logout();
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-4" />
+          Log out
         </button>
       </motion.div>
     </>
