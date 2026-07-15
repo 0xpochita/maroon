@@ -34,6 +34,10 @@ export const chainLogos: Record<string, string> = {
   Base: `${CHAIN_BASE}/base-logo.jpg`,
   Arbitrum: `${CHAIN_BASE}/arb-logo.svg`,
   Ethereum: `${CHAIN_BASE}/eth-logo.svg`,
+  Optimism: `${CHAIN_BASE}/optimism-logo.png`,
+  Polygon: `${CHAIN_BASE}/polygon-logo.png`,
+  "BNB Chain": `${CHAIN_BASE}/bnb-logo.png`,
+  Avalanche: `${CHAIN_BASE}/avalanche-logo.png`,
 };
 
 export const earnPlans: EarnPlan[] = [

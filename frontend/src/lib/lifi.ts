@@ -23,9 +23,27 @@ export const USDC_BY_ID: Record<number, string> = {
 
 // Arbitrum first, then other popular EVM chains. One fetch per chain so each is
 // represented in the grid and the chain filter.
-const POPULAR_CHAINS = [42161, 8453, 1, 10, 137];
+const POPULAR_CHAINS = [42161, 8453, 1, 10, 137, 56, 43114];
 
-const STABLES = new Set(["USDC", "USDT", "DAI", "USDE"]);
+// Stablecoin assets to pull per chain. USDe surfaces Ethena's synthetic-dollar
+// yield vaults; USDC/USDT cover lending. LI.FI matches on token symbol.
+const ASSETS = ["USDC", "USDT", "USDe"];
+
+const STABLES = new Set([
+  "USDC",
+  "USDT",
+  "DAI",
+  "USDE",
+  "SUSDE",
+  "USDS",
+  "GHO",
+  "FRAX",
+  "USR",
+  "RLUSD",
+  "USD0",
+]);
+
+const USDE_LOGO = "/Assets/Images/Logo/logo-token/usde-logo.svg";
 
 // LI.FI often omits protocol.logoUri; fall back to local logos for the ones we
 // ship. Unknown protocols render initials in VaultAvatar.
@@ -37,6 +55,7 @@ const PROTOCOL_LOGOS: Record<string, string> = {
   "euler finance": `${LOGO_DIR}/euler-logo.png`,
   lido: `${LOGO_DIR}/lido-logo.svg`,
   fluid: `${LOGO_DIR}/fluid-logo.png`,
+  ethena: `${LOGO_DIR}/ethena-logo.webp`,
 };
 
 // Lido liquid staking. "Buy" wstETH easily: the Earn deposit routes USDC to the
@@ -113,6 +132,9 @@ const NAME_MAP: Record<string, string> = {
   gtusdcp: "Gauntlet USDC Prime",
   gtusdc: "Gauntlet USDC",
   gtusdcc: "Gauntlet USDC Core",
+  susde: "Staked USDe",
+  usde: "USDe",
+  susds: "Staked USDS",
 };
 
 function niceName(raw: string) {
@@ -166,7 +188,9 @@ function mapVault(v: any): Vault {
     chainId,
     tokenAddress: String(token.address ?? ""),
     asset: symbol.toUpperCase(),
-    assetLogo: String(token.logoURI ?? ""),
+    assetLogo:
+      String(token.logoURI ?? "") ||
+      (symbol.toUpperCase() === "USDE" ? USDE_LOGO : ""),
     protocol: {
       name: titleCase(pname),
       logo:
@@ -191,15 +215,16 @@ function mapVault(v: any): Vault {
 
 async function fetchChainVaults(
   chainId: number,
+  asset: string,
   key: string,
 ): Promise<Vault[]> {
   try {
     const url = new URL(`${EARN_BASE}/vaults`);
     url.searchParams.set("chainId", String(chainId));
-    url.searchParams.set("asset", "USDC");
+    url.searchParams.set("asset", asset);
     url.searchParams.set("sortBy", "tvl");
     url.searchParams.set("minTvlUsd", "1000000");
-    url.searchParams.set("limit", "5");
+    url.searchParams.set("limit", "8");
     const res = await fetch(url, {
       headers: { "x-lifi-api-key": key },
       next: { revalidate: 300 },
@@ -226,13 +251,45 @@ export async function fetchVaults(): Promise<Vault[]> {
   const key = process.env.LIFI_API_KEY;
   if (!key) return [...mockVaults, ...LIDO_VAULTS];
   const results = await Promise.all(
-    POPULAR_CHAINS.map((chainId) => fetchChainVaults(chainId, key)),
+    POPULAR_CHAINS.flatMap((chainId) =>
+      ASSETS.map((asset) => fetchChainVaults(chainId, asset, key)),
+    ),
   );
-  const merged = results.flat().sort((a, b) => b.tvlUsd - a.tvlUsd);
+  // Dedupe by vault address (a vault can match more than one asset query).
+  const seen = new Map<string, Vault>();
+  for (const v of results.flat()) {
+    if (!seen.has(v.id)) seen.set(v.id, v);
+  }
+  const merged = [...seen.values()].sort((a, b) => b.tvlUsd - a.tvlUsd);
   return [...(merged.length ? merged : mockVaults), ...LIDO_VAULTS];
 }
 
 export async function getVaultById(id: string): Promise<Vault | undefined> {
   const all = await fetchVaults();
   return all.find((v) => v.id === id || v.vaultAddress === id);
+}
+
+export interface Position {
+  vaultAddress: string;
+  chainId: number;
+  chain: string;
+  protocol: string;
+  logo: string;
+  asset: string;
+  name?: string;
+  balanceUsd: number;
+  apy?: number;
+}
+
+// Client-side: fetches the server portfolio route (which holds the key).
+export async function getPositions(address: string): Promise<Position[]> {
+  try {
+    const res = await fetch(`/api/lifi/portfolio/${address}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.positions ?? [];
+  } catch (error) {
+    console.error("getPositions failed", error);
+    return [];
+  }
 }

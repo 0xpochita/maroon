@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatUsd } from "@/lib/format";
+import { getPositions, type Position } from "@/lib/lifi";
 import { tokenLogo } from "@/lib/tokens";
 import { type Asset, useAccountStore } from "@/stores/account";
 import { useUiStore } from "@/stores/ui";
@@ -20,12 +21,36 @@ export function Profile() {
   const openDeposit = useUiStore((s) => s.openDeposit);
   const openAuth = useUiStore((s) => s.openAuth);
 
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [loadingPositions, setLoadingPositions] = useState(false);
+
+  useEffect(() => {
+    if (!address) return;
+    let active = true;
+    setLoadingPositions(true);
+    getPositions(address)
+      .then((p) => active && setPositions(p))
+      .finally(() => active && setLoadingPositions(false));
+    return () => {
+      active = false;
+    };
+  }, [address]);
+
+  const { deposited, blendedApy } = useMemo(() => {
+    const total = positions.reduce((s, p) => s + p.balanceUsd, 0);
+    const apy =
+      total > 0
+        ? positions.reduce((s, p) => s + p.balanceUsd * (p.apy ?? 0), 0) / total
+        : 0;
+    return { deposited: total, blendedApy: apy };
+  }, [positions]);
+
   if (status !== "ready" || !address) {
     return (
       <div className="mx-auto mt-10 flex max-w-md flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-10 text-center">
         <h1 className="text-xl font-semibold">Log in to see your profile</h1>
         <p className="text-sm text-muted-foreground">
-          Your Universal Account, balance and activity live here.
+          Your Universal Account, positions and activity live here.
         </p>
         <button
           type="button"
@@ -43,10 +68,15 @@ export function Profile() {
       <ProfileCard
         address={address}
         balanceUsd={balanceUsd}
-        assetCount={assets.length}
+        deposited={deposited}
+        blendedApy={blendedApy}
         onDeposit={openDeposit}
       />
-      <HoldingsSection assets={assets} />
+      <ActivitySection
+        positions={positions}
+        assets={assets}
+        loadingPositions={loadingPositions}
+      />
     </div>
   );
 }
@@ -54,18 +84,23 @@ export function Profile() {
 function ProfileCard({
   address,
   balanceUsd,
-  assetCount,
+  deposited,
+  blendedApy,
   onDeposit,
 }: {
   address: string;
   balanceUsd?: number;
-  assetCount: number;
+  deposited: number;
+  blendedApy: number;
   onDeposit: () => void;
 }) {
   const stats = [
     { label: "Balance", value: formatUsd(balanceUsd ?? 0) },
-    { label: "Assets", value: String(assetCount) },
-    { label: "Networks", value: "All" },
+    { label: "Deposited", value: formatUsd(deposited) },
+    {
+      label: "Blended APY",
+      value: blendedApy > 0 ? `${blendedApy.toFixed(2)}%` : "-",
+    },
   ];
   return (
     <article className="rounded-2xl border border-border bg-surface p-6">
@@ -106,11 +141,27 @@ function ProfileCard({
   );
 }
 
-function HoldingsSection({ assets }: { assets: Asset[] }) {
-  const [tab, setTab] = useState<"holdings" | "activity">("holdings");
+type Tab = "positions" | "holdings" | "activity";
+
+function ActivitySection({
+  positions,
+  assets,
+  loadingPositions,
+}: {
+  positions: Position[];
+  assets: Asset[];
+  loadingPositions: boolean;
+}) {
+  const [tab, setTab] = useState<Tab>("positions");
   return (
     <section>
       <div className="flex items-center gap-5 border-b border-border">
+        <TabButton
+          active={tab === "positions"}
+          onClick={() => setTab("positions")}
+        >
+          Positions
+        </TabButton>
         <TabButton
           active={tab === "holdings"}
           onClick={() => setTab("holdings")}
@@ -125,7 +176,9 @@ function HoldingsSection({ assets }: { assets: Asset[] }) {
         </TabButton>
       </div>
 
-      {tab === "holdings" ? (
+      {tab === "positions" ? (
+        <PositionsPanel positions={positions} loading={loadingPositions} />
+      ) : tab === "holdings" ? (
         <div className="mt-4 overflow-hidden rounded-2xl border border-border">
           {assets.length > 0 ? (
             assets.map((asset) => (
@@ -158,6 +211,79 @@ function HoldingsSection({ assets }: { assets: Asset[] }) {
         </div>
       )}
     </section>
+  );
+}
+
+function PositionsPanel({
+  positions,
+  loading,
+}: {
+  positions: Position[];
+  loading: boolean;
+}) {
+  if (loading && positions.length === 0) {
+    return (
+      <div className="mt-4 overflow-hidden rounded-2xl border border-border">
+        <EmptyState label="Loading your positions..." />
+      </div>
+    );
+  }
+  if (positions.length === 0) {
+    return (
+      <div className="mt-4 overflow-hidden rounded-2xl border border-border">
+        <EmptyState label="No positions yet. Deposit to start earning." />
+      </div>
+    );
+  }
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border border-border">
+      {positions.map((position) => (
+        <div
+          key={`${position.chainId}-${position.vaultAddress}`}
+          className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+        >
+          <PositionLogo logo={position.logo} label={position.protocol} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">
+              {position.name ?? position.protocol}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {position.protocol} · {position.chain}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium">
+              {formatUsd(position.balanceUsd)}
+            </p>
+            {position.apy ? (
+              <p className="text-xs font-medium text-success">
+                {position.apy.toFixed(2)}% APY
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PositionLogo({ logo, label }: { logo: string; label: string }) {
+  if (!logo) {
+    return (
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+        {label.slice(0, 2)}
+      </span>
+    );
+  }
+  return (
+    <Image
+      src={logo}
+      alt={label}
+      width={32}
+      height={32}
+      unoptimized={logo.startsWith("http")}
+      className="size-8 shrink-0 rounded-full object-contain"
+    />
   );
 }
 
