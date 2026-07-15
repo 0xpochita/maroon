@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { type Asset, useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
+import { tokenLogo } from "@/lib/tokens";
 
 function shorten(address?: string) {
   if (!address) return "";
@@ -124,9 +126,10 @@ function HoldingsSection({ assets }: { assets: Asset[] }) {
             assets.map((asset) => (
               <div
                 key={asset.tokenType}
-                className="flex items-center justify-between border-b border-border px-4 py-3 last:border-b-0"
+                className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
               >
-                <div>
+                <AssetLogo symbol={asset.tokenType} />
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{asset.tokenType}</p>
                   <p className="text-xs text-muted-foreground">
                     {asset.amount.toLocaleString(undefined, {
@@ -150,6 +153,27 @@ function HoldingsSection({ assets }: { assets: Asset[] }) {
         </div>
       )}
     </section>
+  );
+}
+
+function AssetLogo({ symbol }: { symbol: string }) {
+  const logo = tokenLogo(symbol);
+  if (!logo) {
+    return (
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+        {symbol.slice(0, 3)}
+      </span>
+    );
+  }
+  return (
+    <Image
+      src={logo}
+      alt={symbol}
+      width={32}
+      height={32}
+      unoptimized={logo.startsWith("http")}
+      className="size-8 shrink-0 rounded-full object-contain"
+    />
   );
 }
 

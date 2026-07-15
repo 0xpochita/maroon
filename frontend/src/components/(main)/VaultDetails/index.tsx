@@ -1,21 +1,38 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatCompactUsd, formatPercent } from "@/lib/format";
-import { getVault } from "@/lib/mock/earn";
+import { getVaultById } from "@/lib/lifi";
 import { EarnButton } from "../EarnButton";
 import { VaultAvatar } from "../VaultAvatar";
 import { YieldTrend } from "./YieldTrend";
 
-export function VaultDetails({ id }: { id: string }) {
-  const vault = getVault(id);
+export async function VaultDetails({ id }: { id: string }) {
+  const vault = await getVaultById(id);
   if (!vault) notFound();
 
   const facts = [
+    ...(vault.name ? [{ label: "Vault", value: vault.name }] : []),
+    { label: "Underlying asset", value: vault.asset },
     { label: "Protocol", value: vault.protocol.name },
     { label: "Network", value: vault.chain },
-    { label: "Asset", value: vault.asset },
     { label: "Yield (APY)", value: formatPercent(vault.apy) },
+    { label: "Withdraw", value: "Anytime, no lock" },
+  ];
+
+  const steps = [
+    {
+      title: "Add funds",
+      desc: "Deposit USDC from any chain, or buy with cash. One tap.",
+    },
+    {
+      title: "Earn automatically",
+      desc: `Your balance grows about ${formatPercent(vault.apy)} a year. No staking or claiming.`,
+    },
+    {
+      title: "Withdraw anytime",
+      desc: "No lock-up. Take your money out whenever you want.",
+    },
   ];
 
   return (
@@ -33,11 +50,15 @@ export function VaultDetails({ id }: { id: string }) {
             <VaultAvatar vault={vault} size={56} />
             <div>
               <h1 className="text-2xl font-semibold">{vault.protocol.name}</h1>
-              <p className="text-sm text-muted-foreground">
+              {vault.name ? (
+                <p className="text-sm text-muted-foreground">{vault.name}</p>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
                 {vault.asset} · {vault.chain}
               </p>
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <Stat
               label="Yield per year"
@@ -49,18 +70,38 @@ export function VaultDetails({ id }: { id: string }) {
               value={formatCompactUsd(vault.tvlUsd)}
             />
           </div>
+
+          <section className="rounded-2xl border border-border bg-surface p-5">
+            <h2 className="text-sm font-semibold">How it works</h2>
+            <ol className="mt-4 flex flex-col gap-4">
+              {steps.map((step, index) => (
+                <li key={step.title} className="flex gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{step.title}</p>
+                    <p className="text-sm text-muted-foreground">{step.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
           <section className="rounded-2xl border border-border bg-surface p-5">
             <h2 className="text-sm font-semibold">Yield over time</h2>
             <div className="mt-3 h-56">
-              <YieldTrend apy={vault.apy} />
+              <YieldTrend data={vault.apyHistory ?? []} />
             </div>
           </section>
+
           <section className="rounded-2xl border border-border bg-surface p-5">
             <h2 className="text-sm font-semibold">About this vault</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your {vault.asset} is deposited into {vault.protocol.name} on{" "}
-              {vault.chain} to earn {formatPercent(vault.apy)} a year. Withdraw
-              anytime. Maroon handles wallets, gas and chains for you.
+              Your {vault.asset} is put to work in {vault.protocol.name} on{" "}
+              {vault.chain} to earn about {formatPercent(vault.apy)} a year. You
+              keep full control and can withdraw anytime. Maroon handles the
+              wallet, gas and network switching for you.
             </p>
             <dl className="mt-4 divide-y divide-border">
               {facts.map((fact) => (
@@ -72,9 +113,28 @@ export function VaultDetails({ id }: { id: string }) {
                   <dd className="font-medium">{fact.value}</dd>
                 </div>
               ))}
+              {vault.sourceUrl || vault.protocol.url ? (
+                <div className="flex justify-between py-2.5 text-sm">
+                  <dt className="text-muted-foreground">Source</dt>
+                  <a
+                    href={vault.sourceUrl || vault.protocol.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 font-medium text-primary transition-colors hover:underline"
+                  >
+                    Open on {vault.protocol.name}
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                </div>
+              ) : null}
             </dl>
+            <p className="mt-4 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+              Yields change with the market and are not guaranteed. Only deposit
+              what you can afford to leave earning.
+            </p>
           </section>
         </div>
+
         <aside>
           <div className="sticky top-6 rounded-2xl border border-border bg-surface p-5">
             <p className="text-sm text-muted-foreground">Estimated yield</p>

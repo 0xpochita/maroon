@@ -1,4 +1,5 @@
 import { VaultBrowser } from "@/components/(main)/VaultBrowser";
+import { fetchVaults } from "@/lib/lifi";
 
 export default async function Page({
   searchParams,
@@ -6,5 +7,6 @@ export default async function Page({
   searchParams: Promise<{ category?: string; chain?: string }>;
 }) {
   const { category, chain } = await searchParams;
-  return <VaultBrowser category={category} chain={chain} />;
+  const vaults = await fetchVaults();
+  return <VaultBrowser vaults={vaults} category={category} chain={chain} />;
 }

@@ -1,12 +1,15 @@
 import Image from "next/image";
-import { categories, vaults } from "@/lib/mock/earn";
+import { categories } from "@/lib/mock/earn";
+import type { Vault } from "@/types/earn";
 import { VaultGrid } from "../VaultGrid";
 import { ChainFilter } from "./ChainFilter";
 
 export function VaultBrowser({
+  vaults,
   category,
   chain,
 }: {
+  vaults: Vault[];
   category?: string;
   chain?: string;
 }) {

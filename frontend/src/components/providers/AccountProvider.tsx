@@ -8,7 +8,7 @@ import {
   type Asset,
 } from "@/hooks/useAccount";
 import { getMagic } from "@/lib/magic";
-import { depositUsdc, newUniversalAccount } from "@/lib/ua";
+import { depositToVault, depositUsdc, newUniversalAccount } from "@/lib/ua";
 import type { Vault } from "@/types/earn";
 import { AuthModal } from "../(main)/AuthModal";
 import { DepositModal } from "../(main)/DepositModal";
@@ -106,12 +106,16 @@ export function MagicAccountProvider({
       const magic = getMagic(magicApiKey);
       if (!magic) return { ok: false, error: "Wallet not ready" };
       try {
-        const id = await depositUsdc({
-          magic,
-          keys: { projectId, clientKey, appId },
-          chainName: vault.chain,
-          amount: String(amountUsd),
-        });
+        const keys = { projectId, clientKey, appId };
+        const id =
+          vault.vaultAddress && vault.chainId
+            ? await depositToVault({ magic, keys, vault, amountUsd })
+            : await depositUsdc({
+                magic,
+                keys,
+                chainName: vault.chain,
+                amount: String(amountUsd),
+              });
         refresh();
         return { ok: true, id };
       } catch (error) {

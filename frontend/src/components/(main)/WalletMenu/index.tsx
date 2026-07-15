@@ -14,8 +14,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { type Asset, useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
-
-const USDC_LOGO = "/Assets/Images/Logo/logo-defi/usdc-logo.webp";
+import { tokenLogo } from "@/lib/tokens";
 
 function shorten(address?: string) {
   if (!address) return "";
@@ -71,20 +70,28 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
         transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
       >
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold">Maroon Wallet</h2>
-            <button
-              type="button"
-              onClick={copy}
-              className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <span className="font-mono">{shorten(address)}</span>
-              {copied ? (
-                <Check className="size-3.5 text-success" />
-              ) : (
-                <Copy className="size-3.5" />
-              )}
-            </button>
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
+              alt="Maroon"
+              width={28}
+              height={25}
+            />
+            <div>
+              <h2 className="text-lg font-bold">Maroon Wallet</h2>
+              <button
+                type="button"
+                onClick={copy}
+                className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <span className="font-mono">{shorten(address)}</span>
+                {copied ? (
+                  <Check className="size-3.5 text-success" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
+              </button>
+            </div>
           </div>
           <button
             type="button"
@@ -146,29 +153,43 @@ function WalletDrawer({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={logout}
-          className="mt-auto flex items-center gap-2 pt-6 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <LogOut className="size-4" />
-          Log out
-        </button>
+        <div className="mt-auto pt-6">
+          <button
+            type="button"
+            onClick={logout}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <LogOut className="size-4" />
+            Log out
+          </button>
+          <div className="mt-4 flex items-center justify-center gap-1.5 border-t border-border pt-4 text-xs text-muted-foreground">
+            Powered by
+            <Image
+              src="/Assets/Images/Logo/logo-brands/magic-labs-logo.jpg"
+              alt="Magic Labs"
+              width={16}
+              height={16}
+              className="size-4 rounded object-contain"
+            />
+            Magic Labs
+          </div>
+        </div>
       </motion.aside>
     </div>
   );
 }
 
 function AssetRow({ asset }: { asset: Asset }) {
-  const isUsdc = asset.tokenType === "USDC";
+  const logo = tokenLogo(asset.tokenType);
   return (
     <div className="flex items-center gap-3">
-      {isUsdc ? (
+      {logo ? (
         <Image
-          src={USDC_LOGO}
-          alt="USDC"
+          src={logo}
+          alt={asset.tokenType}
           width={36}
           height={36}
+          unoptimized={logo.startsWith("http")}
           className="size-9 rounded-full object-contain"
         />
       ) : (

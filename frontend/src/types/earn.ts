@@ -3,6 +3,7 @@ export type RiskLevel = "safe" | "balanced" | "degen";
 export interface Protocol {
   name: string;
   logo: string;
+  url?: string;
 }
 
 export interface Allocation {
@@ -25,6 +26,7 @@ export interface EarnPlan {
 
 export interface Vault {
   id: string;
+  name?: string;
   asset: string;
   assetLogo: string;
   protocol: Protocol;
@@ -32,6 +34,12 @@ export interface Vault {
   apy: number;
   tvlUsd: number;
   categories: string[];
+  // Present for real LI.FI vaults; used to build a Composer deposit quote.
+  chainId?: number;
+  vaultAddress?: string;
+  tokenAddress?: string;
+  sourceUrl?: string;
+  apyHistory?: { label: string; apy: number }[];
 }
 
 export interface PortfolioSummary {

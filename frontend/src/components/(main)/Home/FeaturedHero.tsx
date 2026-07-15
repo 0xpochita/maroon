@@ -1,23 +1,32 @@
 import { Bookmark, Share2 } from "lucide-react";
 import Image from "next/image";
 import { formatCompactUsd, formatPercent } from "@/lib/format";
-import { earnPlans, vaults } from "@/lib/mock/earn";
+import { earnPlans } from "@/lib/mock/earn";
+import type { Vault } from "@/types/earn";
+import { VaultAvatar } from "../VaultAvatar";
 import { ActivityFeed } from "./ActivityFeed";
 import { YieldChart } from "./YieldChart";
 
-const FEATURED = vaults.slice(0, 3);
+const USDC_LOGO = "/Assets/Images/Logo/logo-defi/usdc-logo.webp";
 const DOT_CLASS = ["bg-primary", "bg-high", "bg-success"];
-const FEATURED_TVL = FEATURED.reduce((sum, vault) => sum + vault.tvlUsd, 0);
 const HERO_CHIPS = [earnPlans[0], earnPlans[2]];
 
-export function FeaturedHero() {
+function pickFeatured(vaults: Vault[]) {
+  const usdc = vaults.filter((v) => v.asset === "USDC");
+  const list = usdc.length >= 3 ? usdc : vaults;
+  return list.slice(0, 3);
+}
+
+export function FeaturedHero({ vaults }: { vaults: Vault[] }) {
+  const featured = pickFeatured(vaults);
+  const tvl = featured.reduce((sum, vault) => sum + vault.tvlUsd, 0);
   return (
     <div className="flex flex-col gap-3">
       <article className="flex flex-col rounded-2xl border border-border bg-surface p-5">
         <FeaturedTop />
         <div className="mt-5 grid gap-6 md:grid-cols-2">
-          <FeaturedList />
-          <FeaturedChart />
+          <FeaturedList featured={featured} tvl={tvl} />
+          <FeaturedChart featured={featured} />
         </div>
       </article>
       <FeaturedFooter />
@@ -30,7 +39,7 @@ function FeaturedTop() {
     <div className="flex items-start justify-between gap-3">
       <div className="flex items-center gap-3">
         <Image
-          src={FEATURED[0].assetLogo}
+          src={USDC_LOGO}
           alt="USDC"
           width={44}
           height={44}
@@ -63,22 +72,16 @@ function FeaturedTop() {
   );
 }
 
-function FeaturedList() {
+function FeaturedList({ featured, tvl }: { featured: Vault[]; tvl: number }) {
   return (
     <div className="flex flex-col">
       <ul className="divide-y divide-border">
-        {FEATURED.map((vault) => (
+        {featured.map((vault) => (
           <li
             key={vault.id}
             className="flex items-center gap-3 py-3 first:pt-0"
           >
-            <Image
-              src={vault.protocol.logo}
-              alt={vault.protocol.name}
-              width={28}
-              height={28}
-              className="size-7 shrink-0 rounded-full object-contain"
-            />
+            <VaultAvatar vault={vault} size={28} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{vault.protocol.name}</p>
               <p className="text-xs text-muted-foreground">{vault.chain}</p>
@@ -103,18 +106,18 @@ function FeaturedList() {
           Start earning
         </button>
         <p className="mt-3 text-xs text-muted-foreground">
-          {formatCompactUsd(FEATURED_TVL)} TVL
+          {formatCompactUsd(tvl)} TVL
         </p>
       </div>
     </div>
   );
 }
 
-function FeaturedChart() {
+function FeaturedChart({ featured }: { featured: Vault[] }) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {FEATURED.map((vault, index) => (
+        {featured.map((vault, index) => (
           <span key={vault.id} className="flex items-center gap-1.5">
             <span className={`size-2 rounded-full ${DOT_CLASS[index]}`} />
             {vault.protocol.name}
@@ -125,7 +128,7 @@ function FeaturedChart() {
         ))}
       </div>
       <div className="mt-3 min-h-48 flex-1">
-        <YieldChart />
+        <YieldChart featured={featured} />
       </div>
     </div>
   );

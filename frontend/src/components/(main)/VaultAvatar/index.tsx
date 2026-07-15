@@ -13,14 +13,24 @@ export function VaultAvatar({
   const badge = Math.round(size * 0.45);
   return (
     <span className="relative shrink-0">
-      <Image
-        src={vault.protocol.logo}
-        alt={vault.protocol.name}
-        width={size}
-        height={size}
-        style={{ width: size, height: size }}
-        className="rounded-full object-contain"
-      />
+      {vault.protocol.logo ? (
+        <Image
+          src={vault.protocol.logo}
+          alt={vault.protocol.name}
+          width={size}
+          height={size}
+          style={{ width: size, height: size }}
+          className="rounded-full object-contain"
+          unoptimized={vault.protocol.logo.startsWith("http")}
+        />
+      ) : (
+        <span
+          style={{ width: size, height: size }}
+          className="flex items-center justify-center rounded-full bg-muted text-xs font-bold uppercase"
+        >
+          {vault.protocol.name.slice(0, 2)}
+        </span>
+      )}
       {chainLogo ? (
         <Image
           src={chainLogo}

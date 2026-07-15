@@ -1,10 +1,10 @@
 import { Info, TrendingUp } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { formatCompactUsd, formatPercent } from "@/lib/format";
-import { chainLogos } from "@/lib/mock/earn";
 import type { Vault } from "@/types/earn";
 import { EarnButton } from "../EarnButton";
+import { VaultAvatar } from "../VaultAvatar";
+import { SaveButton } from "./SaveButton";
 
 export function VaultCard({ vault }: { vault: Vault }) {
   return (
@@ -30,40 +30,19 @@ export function VaultCard({ vault }: { vault: Vault }) {
   );
 }
 
-function VaultAvatar({ vault }: { vault: Vault }) {
-  const chainLogo = chainLogos[vault.chain];
-  return (
-    <span className="relative shrink-0">
-      <Image
-        src={vault.protocol.logo}
-        alt={vault.protocol.name}
-        width={40}
-        height={40}
-        className="size-10 rounded-full object-contain"
-      />
-      {chainLogo ? (
-        <Image
-          src={chainLogo}
-          alt={vault.chain}
-          width={18}
-          height={18}
-          className="absolute -right-0.5 -bottom-0.5 size-[18px] rounded-full border-2 border-surface bg-surface object-contain"
-        />
-      ) : null}
-    </span>
-  );
-}
-
 function VaultHeader({ vault }: { vault: Vault }) {
   return (
     <div className="flex items-center gap-3">
       <VaultAvatar vault={vault} />
-      <div className="min-w-0">
-        <h3 className="text-lg font-normal leading-tight">
-          {vault.protocol.name}
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-base font-medium leading-tight">
+          {vault.name || vault.protocol.name}
         </h3>
-        <p className="text-sm text-muted-foreground">{vault.chain}</p>
+        <p className="truncate text-sm text-muted-foreground">
+          {vault.protocol.name} · {vault.chain}
+        </p>
       </div>
+      <SaveButton vault={vault} />
     </div>
   );
 }

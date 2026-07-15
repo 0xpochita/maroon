@@ -4,7 +4,15 @@ import Link from "next/link";
 import { chainLogos } from "@/lib/mock/earn";
 import type { Vault } from "@/types/earn";
 
-const CHAINS = ["Base", "Arbitrum", "Ethereum"];
+const CHAIN_ORDER = [
+  "Arbitrum",
+  "Base",
+  "Ethereum",
+  "Optimism",
+  "Polygon",
+  "BNB Chain",
+  "Avalanche",
+];
 
 function buildHref(category?: string, chain?: string) {
   const params = new URLSearchParams();
@@ -23,9 +31,13 @@ export function ChainFilter({
   chain?: string;
   vaultsInCategory: Vault[];
 }) {
-  const present = CHAINS.filter((name) =>
-    vaultsInCategory.some((vault) => vault.chain === name),
-  );
+  const rank = (name: string) => {
+    const i = CHAIN_ORDER.indexOf(name);
+    return i === -1 ? CHAIN_ORDER.length : i;
+  };
+  const present = [
+    ...new Set(vaultsInCategory.map((vault) => vault.chain)),
+  ].sort((a, b) => rank(a) - rank(b));
 
   return (
     <aside className="lg:w-56 lg:shrink-0">

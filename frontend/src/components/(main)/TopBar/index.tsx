@@ -7,6 +7,7 @@ import { useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
 import { NotificationMenu } from "../NotificationMenu";
 import { ProfileMenu } from "../ProfileMenu";
+import { SavedMenu } from "../SavedMenu";
 import { WalletMenu } from "../WalletMenu";
 
 export function TopBar() {
@@ -67,6 +68,7 @@ function TopBarActions() {
       >
         Deposit
       </button>
+      <SavedMenu />
       <WalletMenu />
       <NotificationMenu />
       <ProfileMenu />

@@ -28,6 +28,14 @@ const CHAIN_SRCS = [
 ].filter(Boolean);
 const BANNER_SRCS = [USDC_LOGO, ...CHAIN_SRCS];
 
+// Chains we show logos for (Magic supports these EVM networks; USDC sent on any
+// of them is credited to the unified balance).
+const SUPPORTED = [
+  { name: "Base", logo: chainLogos.Base },
+  { name: "Arbitrum", logo: chainLogos.Arbitrum },
+  { name: "Ethereum", logo: chainLogos.Ethereum },
+].filter((c) => c.logo);
+
 export function DepositModal({
   open,
   onClose,
@@ -282,6 +290,23 @@ function CryptoView({ address }: { address?: string }) {
         Send USDC on any supported chain to this address. It is credited to your
         balance 1:1.
       </p>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        {SUPPORTED.map((c) => (
+          <span
+            key={c.name}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            <Image
+              src={c.logo}
+              alt={c.name}
+              width={16}
+              height={16}
+              className="size-4 rounded-full object-contain"
+            />
+            {c.name}
+          </span>
+        ))}
+      </div>
       <div className="mt-4 flex justify-center rounded-xl border border-border bg-surface p-4">
         <QRCode value={address} size={160} />
       </div>

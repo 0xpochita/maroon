@@ -201,10 +201,10 @@ export const totalVaultCount = 24;
 
 export const categories = [
   "Trending",
+  "Best yield",
   "Stablecoins",
-  "ETH",
-  "Lending",
   "Liquid staking",
-  "RWA",
-  "New",
+  "Lending",
+  "Low risk",
+  "High risk",
 ];
