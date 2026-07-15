@@ -26,9 +26,11 @@ export function TopVaults({ vaults }: { vaults: Vault[] }) {
               <VaultAvatar vault={vault} size={28} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
-                  {vault.protocol.name}
+                  {vault.name || vault.protocol.name}
                 </p>
-                <p className="text-xs text-muted-foreground">{vault.chain}</p>
+                <p className="text-xs text-muted-foreground">
+                  {vault.protocol.name} · {vault.chain}
+                </p>
               </div>
               <span className="text-sm font-semibold text-success">
                 {formatPercent(vault.apy)}

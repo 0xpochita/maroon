@@ -1,12 +1,12 @@
 "use client";
 
 import { Bookmark } from "lucide-react";
-import { useSaved } from "@/lib/saved";
+import { useSavedStore } from "@/stores/saved";
 import type { Vault } from "@/types/earn";
 
 export function SaveButton({ vault }: { vault: Vault }) {
-  const { has, toggle } = useSaved();
-  const saved = has(vault.id);
+  const saved = useSavedStore((s) => s.items.some((v) => v.id === vault.id));
+  const toggle = useSavedStore((s) => s.toggle);
   return (
     <button
       type="button"

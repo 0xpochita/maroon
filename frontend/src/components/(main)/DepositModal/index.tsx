@@ -16,9 +16,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { FaCoins, FaMoneyBillWave } from "react-icons/fa6";
 import QRCode from "react-qr-code";
-import { useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
 import { chainLogos } from "@/lib/mock/earn";
+import { useAccountStore } from "@/stores/account";
 
 const USDC_LOGO = "/Assets/Images/Logo/logo-defi/usdc-logo.webp";
 const CHAIN_SRCS = [
@@ -51,7 +51,9 @@ export function DepositModal({
 }
 
 function Panel({ onClose }: { onClose: () => void }) {
-  const { address, balanceUsd, openOnramp } = useAccount();
+  const address = useAccountStore((s) => s.address);
+  const balanceUsd = useAccountStore((s) => s.balanceUsd);
+  const openOnramp = useAccountStore((s) => s.openOnramp);
   const [tab, setTab] = useState<"crypto" | "cash">("crypto");
   const [showAddress, setShowAddress] = useState(false);
   const [bannerOpen, setBannerOpen] = useState(true);

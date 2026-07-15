@@ -1,5 +1,6 @@
 import { Bookmark, Share2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { formatCompactUsd, formatPercent } from "@/lib/format";
 import { earnPlans } from "@/lib/mock/earn";
 import type { Vault } from "@/types/earn";
@@ -83,8 +84,12 @@ function FeaturedList({ featured, tvl }: { featured: Vault[]; tvl: number }) {
           >
             <VaultAvatar vault={vault} size={28} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{vault.protocol.name}</p>
-              <p className="text-xs text-muted-foreground">{vault.chain}</p>
+              <p className="truncate text-sm font-medium">
+                {vault.name || vault.protocol.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {vault.protocol.name} · {vault.chain}
+              </p>
             </div>
             <span className="text-lg font-bold text-success">
               {formatPercent(vault.apy)}
@@ -99,12 +104,12 @@ function FeaturedList({ featured, tvl }: { featured: Vault[]; tvl: number }) {
         <ActivityFeed />
       </div>
       <div className="mt-5">
-        <button
-          type="button"
-          className="w-full rounded-xl bg-success py-3 text-sm font-semibold text-white shadow-[0_4px_0_0_var(--color-success-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-success-hover)]"
+        <Link
+          href="/defi"
+          className="block w-full rounded-xl bg-success py-3 text-center text-sm font-semibold text-white shadow-[0_4px_0_0_var(--color-success-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-success-hover)]"
         >
           Start earning
-        </button>
+        </Link>
         <p className="mt-3 text-xs text-muted-foreground">
           {formatCompactUsd(tvl)} TVL
         </p>

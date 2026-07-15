@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { CategoryNav } from "../CategoryNav";
 import { Footer } from "../Footer";
+import { GlobalModals } from "../GlobalModals";
 import { TopBar } from "../TopBar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
+      <GlobalModals />
     </div>
   );
 }

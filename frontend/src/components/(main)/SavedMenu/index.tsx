@@ -6,10 +6,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { formatPercent } from "@/lib/format";
-import { type SavedVault, useSaved } from "@/lib/saved";
+import { type SavedVault, useSavedStore } from "@/stores/saved";
 
 export function SavedMenu() {
-  const { items, toggle } = useSaved();
+  const items = useSavedStore((s) => s.items);
+  const toggle = useSavedStore((s) => s.toggle);
   const [open, setOpen] = useState(false);
 
   return (

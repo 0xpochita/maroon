@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { type Asset, useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
 import { tokenLogo } from "@/lib/tokens";
+import { type Asset, useAccountStore } from "@/stores/account";
+import { useUiStore } from "@/stores/ui";
 
 function shorten(address?: string) {
   if (!address) return "";
@@ -41,7 +42,11 @@ export function WalletMenu() {
 }
 
 function WalletDrawer({ onClose }: { onClose: () => void }) {
-  const { address, balanceUsd, assets, openDeposit, logout } = useAccount();
+  const address = useAccountStore((s) => s.address);
+  const balanceUsd = useAccountStore((s) => s.balanceUsd);
+  const assets = useAccountStore((s) => s.assets);
+  const logout = useAccountStore((s) => s.logout);
+  const openDeposit = useUiStore((s) => s.openDeposit);
   const [copied, setCopied] = useState(false);
 
   const copy = () => {

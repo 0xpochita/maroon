@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { ChevronDown, LogOut, Moon, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useAccount } from "@/hooks/useAccount";
+import { useAccountStore } from "@/stores/account";
 
 function shorten(address?: string) {
   return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "";
@@ -43,7 +43,8 @@ export function ProfileMenu() {
 
 function ProfileDropdown({ onClose }: { onClose: () => void }) {
   const [dark, setDark] = useState(false);
-  const { address, logout } = useAccount();
+  const address = useAccountStore((s) => s.address);
+  const logout = useAccountStore((s) => s.logout);
   return (
     <>
       <button

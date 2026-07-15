@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useAccount } from "@/hooks/useAccount";
 import { protocolFilters } from "@/lib/mock/earn";
+import { useUiStore } from "@/stores/ui";
 
 export function PromoCard() {
-  const { openDeposit } = useAccount();
+  const openDeposit = useUiStore((s) => s.openDeposit);
   return (
     <div className="rounded-card border border-border bg-surface p-5">
       <div className="flex -space-x-2">

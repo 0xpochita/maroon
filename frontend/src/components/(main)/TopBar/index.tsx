@@ -3,8 +3,9 @@
 import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
+import { useAccountStore } from "@/stores/account";
+import { useUiStore } from "@/stores/ui";
 import { NotificationMenu } from "../NotificationMenu";
 import { ProfileMenu } from "../ProfileMenu";
 import { SavedMenu } from "../SavedMenu";
@@ -52,7 +53,9 @@ function SearchField() {
 }
 
 function TopBarActions() {
-  const { status, balanceUsd, openDeposit } = useAccount();
+  const status = useAccountStore((s) => s.status);
+  const balanceUsd = useAccountStore((s) => s.balanceUsd);
+  const openDeposit = useUiStore((s) => s.openDeposit);
 
   if (status !== "ready") {
     return <AuthButtons />;
@@ -77,13 +80,14 @@ function TopBarActions() {
 }
 
 function AuthButtons() {
-  const { promptLogin, status } = useAccount();
+  const status = useAccountStore((s) => s.status);
+  const openAuth = useUiStore((s) => s.openAuth);
   const busy = status === "connecting";
   return (
     <div className="ml-auto flex items-center gap-2">
       <button
         type="button"
-        onClick={promptLogin}
+        onClick={() => openAuth("login")}
         disabled={busy}
         className="rounded-xl px-4 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
       >
@@ -91,7 +95,7 @@ function AuthButtons() {
       </button>
       <button
         type="button"
-        onClick={promptLogin}
+        onClick={() => openAuth("signup")}
         disabled={busy}
         className="rounded-xl bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)] disabled:opacity-50"
       >

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Bookmark, Check, Search, SlidersHorizontal, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { categories } from "@/lib/mock/earn";
-import { useSaved } from "@/lib/saved";
+import { useSavedStore } from "@/stores/saved";
 import type { Vault } from "@/types/earn";
 import { VaultGrid } from "../VaultGrid";
 
@@ -21,7 +21,7 @@ const CHAIN_ORDER = [
 type Sort = "tvl" | "apy";
 
 export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
-  const saved = useSaved();
+  const savedItems = useSavedStore((s) => s.items);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -46,7 +46,9 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
       list = list.filter((v) => v.categories.includes(category));
     }
     if (chain) list = list.filter((v) => v.chain === chain);
-    if (savedOnly) list = list.filter((v) => saved.ids.includes(v.id));
+    if (savedOnly) {
+      list = list.filter((v) => savedItems.some((s) => s.id === v.id));
+    }
     const q = query.trim().toLowerCase();
     if (q) {
       list = list.filter((v) =>
@@ -58,7 +60,7 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
     return [...list].sort((a, b) =>
       sort === "apy" ? b.apy - a.apy : b.tvlUsd - a.tvlUsd,
     );
-  }, [vaults, category, chain, savedOnly, query, sort, saved.ids]);
+  }, [vaults, category, chain, savedOnly, query, sort, savedItems]);
 
   const filtersActive = !!chain || sort !== "tvl";
 

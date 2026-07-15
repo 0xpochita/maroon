@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { type Asset, useAccount } from "@/hooks/useAccount";
 import { formatUsd } from "@/lib/format";
 import { tokenLogo } from "@/lib/tokens";
+import { type Asset, useAccountStore } from "@/stores/account";
+import { useUiStore } from "@/stores/ui";
 
 function shorten(address?: string) {
   if (!address) return "";
@@ -12,8 +13,12 @@ function shorten(address?: string) {
 }
 
 export function Profile() {
-  const { status, address, balanceUsd, assets, openDeposit, promptLogin } =
-    useAccount();
+  const status = useAccountStore((s) => s.status);
+  const address = useAccountStore((s) => s.address);
+  const balanceUsd = useAccountStore((s) => s.balanceUsd);
+  const assets = useAccountStore((s) => s.assets);
+  const openDeposit = useUiStore((s) => s.openDeposit);
+  const openAuth = useUiStore((s) => s.openAuth);
 
   if (status !== "ready" || !address) {
     return (
@@ -24,7 +29,7 @@ export function Profile() {
         </p>
         <button
           type="button"
-          onClick={promptLogin}
+          onClick={() => openAuth("login")}
           className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)]"
         >
           Log In
