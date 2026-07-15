@@ -110,8 +110,9 @@ function prettyName(value: string) {
 
 // Friendly names for vault symbols that are otherwise cryptic.
 const NAME_MAP: Record<string, string> = {
-  gtusdcp: "Gauntlet USDC",
+  gtusdcp: "Gauntlet USDC Prime",
   gtusdc: "Gauntlet USDC",
+  gtusdcc: "Gauntlet USDC Core",
 };
 
 function niceName(raw: string) {

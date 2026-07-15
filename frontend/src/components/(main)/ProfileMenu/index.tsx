@@ -6,6 +6,7 @@ import { ChevronDown, LogOut, Moon, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useAccountStore } from "@/stores/account";
+import { useThemeStore } from "@/stores/theme";
 
 function shorten(address?: string) {
   return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "";
@@ -42,7 +43,8 @@ export function ProfileMenu() {
 }
 
 function ProfileDropdown({ onClose }: { onClose: () => void }) {
-  const [dark, setDark] = useState(false);
+  const dark = useThemeStore((s) => s.dark);
+  const toggleTheme = useThemeStore((s) => s.toggle);
   const address = useAccountStore((s) => s.address);
   const logout = useAccountStore((s) => s.logout);
   return (
@@ -76,7 +78,7 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
         <div className="my-1 h-px bg-border" />
         <button
           type="button"
-          onClick={() => setDark((value) => !value)}
+          onClick={toggleTheme}
           className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors hover:bg-muted"
         >
           <Moon className="size-4 text-muted-foreground" />

@@ -1,27 +1,64 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #ffffff;
-  --color-surface: #ffffff;
-  --color-muted: #f5f6f8;
-  --color-muted-strong: #eceef1;
-  --color-border: #e6e8eb;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --color-foreground: #14151a;
-  --color-muted-foreground: #6b7280;
+:root {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --muted: #f5f6f8;
+  --muted-strong: #eceef1;
+  --border: #e6e8eb;
+  --foreground: #14151a;
+  --muted-foreground: #6b7280;
+  --primary: #5b6ef5;
+  --primary-hover: #4a5ce6;
+  --primary-foreground: #ffffff;
+  --primary-subtle: #eef0fe;
+  --success: #12a150;
+  --success-hover: #0e8443;
+  --success-subtle: #e7f6ee;
+  --warning: #b7791f;
+  --warning-subtle: #fbf1e0;
+  --high: #7c3aed;
+  --high-subtle: #f1ebfd;
+}
 
-  --color-primary: #5b6ef5;
-  --color-primary-hover: #4a5ce6;
-  --color-primary-foreground: #ffffff;
-  --color-primary-subtle: #eef0fe;
+.dark {
+  color-scheme: dark;
+  --background: #0a0a0b;
+  --surface: #16171b;
+  --muted: #1f2026;
+  --muted-strong: #2a2b33;
+  --border: #2a2b33;
+  --foreground: #f4f5f7;
+  --muted-foreground: #9aa1ac;
+  --primary-subtle: #1a1f3d;
+  --success-subtle: #0f2318;
+  --warning-subtle: #2a2012;
+  --high-subtle: #1e1735;
+}
 
-  --color-success: #12a150;
-  --color-success-hover: #0e8443;
-  --color-success-subtle: #e7f6ee;
-  --color-warning: #b7791f;
-  --color-warning-subtle: #fbf1e0;
-  --color-high: #7c3aed;
-  --color-high-subtle: #f1ebfd;
+/* Map the runtime CSS vars into Tailwind color tokens. `inline` keeps the
+   var reference so overriding :root/.dark cascades to every utility. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-high: var(--high);
+  --color-high-subtle: var(--high-subtle);
 
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);

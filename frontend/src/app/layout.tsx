@@ -13,6 +13,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Set the dark class before paint to avoid a flash of the wrong theme.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem('maroon:theme');var d=t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`;
+
 export const metadata: Metadata = {
   title: "Maroon - Earn yield in one tap",
   description:
@@ -27,9 +30,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
+        />
         {children}
         <StoreInitializer
           keys={{
