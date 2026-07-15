@@ -25,9 +25,13 @@ export const USDC_BY_ID: Record<number, string> = {
 // represented in the grid and the chain filter.
 const POPULAR_CHAINS = [42161, 8453, 1, 10, 137, 56, 43114];
 
-// Stablecoin assets to pull per chain. USDe surfaces Ethena's synthetic-dollar
-// yield vaults; USDC/USDT cover lending. LI.FI matches on token symbol.
-const ASSETS = ["USDC", "USDT", "USDe"];
+// Fetch by TVL (blue chips) and by APY (long tail) so high-yield protocols like
+// Pendle and Yearn surface alongside Aave/Morpho, not just the biggest vaults.
+const SORTS = ["tvl", "apy"] as const;
+const MIN_TVL_USD = "500000";
+const PAGE_LIMIT = "40";
+// Cap vaults per protocol per chain so Aave/Morpho don't crowd out variety.
+const MAX_PER_PROTOCOL = 5;
 
 const STABLES = new Set([
   "USDC",
@@ -56,6 +60,22 @@ const PROTOCOL_LOGOS: Record<string, string> = {
   lido: `${LOGO_DIR}/lido-logo.svg`,
   fluid: `${LOGO_DIR}/fluid-logo.png`,
   ethena: `${LOGO_DIR}/ethena-logo.webp`,
+  pendle: `${LOGO_DIR}/pendle-logo.webp`,
+  yearn: `${LOGO_DIR}/yearn-logo.webp`,
+  etherfi: `${LOGO_DIR}/etherfi-logo.webp`,
+  "etherfi-staking": `${LOGO_DIR}/etherfi-logo.webp`,
+  cap: `${LOGO_DIR}/cap-logo.webp`,
+  upshift: `${LOGO_DIR}/upshift-logo.webp`,
+  yo: `${LOGO_DIR}/yo-logo.webp`,
+  avant: `${LOGO_DIR}/avant-logo.webp`,
+  neverland: `${LOGO_DIR}/neverland-logo.webp`,
+};
+
+// LI.FI protocol ids are lowercase slugs; titleCase handles most, but a few
+// need an explicit display name.
+const PROTOCOL_NAMES: Record<string, string> = {
+  "etherfi-staking": "Ether.fi",
+  yo: "YO",
 };
 
 // Lido liquid staking. "Buy" wstETH easily: the Earn deposit routes USDC to the
@@ -192,7 +212,7 @@ function mapVault(v: any): Vault {
       String(token.logoURI ?? "") ||
       (symbol.toUpperCase() === "USDE" ? USDE_LOGO : ""),
     protocol: {
-      name: titleCase(pname),
+      name: PROTOCOL_NAMES[pname.toLowerCase()] ?? titleCase(pname),
       logo:
         String(v.protocol?.logoUri ?? "") ||
         PROTOCOL_LOGOS[pname.toLowerCase()] ||
@@ -215,16 +235,15 @@ function mapVault(v: any): Vault {
 
 async function fetchChainVaults(
   chainId: number,
-  asset: string,
+  sortBy: string,
   key: string,
 ): Promise<Vault[]> {
   try {
     const url = new URL(`${EARN_BASE}/vaults`);
     url.searchParams.set("chainId", String(chainId));
-    url.searchParams.set("asset", asset);
-    url.searchParams.set("sortBy", "tvl");
-    url.searchParams.set("minTvlUsd", "1000000");
-    url.searchParams.set("limit", "8");
+    url.searchParams.set("sortBy", sortBy);
+    url.searchParams.set("minTvlUsd", MIN_TVL_USD);
+    url.searchParams.set("limit", PAGE_LIMIT);
     const res = await fetch(url, {
       headers: { "x-lifi-api-key": key },
       next: { revalidate: 300 },
@@ -252,16 +271,26 @@ export async function fetchVaults(): Promise<Vault[]> {
   if (!key) return [...mockVaults, ...LIDO_VAULTS];
   const results = await Promise.all(
     POPULAR_CHAINS.flatMap((chainId) =>
-      ASSETS.map((asset) => fetchChainVaults(chainId, asset, key)),
+      SORTS.map((sortBy) => fetchChainVaults(chainId, sortBy, key)),
     ),
   );
-  // Dedupe by vault address (a vault can match more than one asset query).
+  // Dedupe by vault address (the tvl and apy queries overlap).
   const seen = new Map<string, Vault>();
   for (const v of results.flat()) {
     if (!seen.has(v.id)) seen.set(v.id, v);
   }
   const merged = [...seen.values()].sort((a, b) => b.tvlUsd - a.tvlUsd);
-  return [...(merged.length ? merged : mockVaults), ...LIDO_VAULTS];
+  // Keep the highest-TVL vaults per protocol per chain so a few big protocols
+  // don't crowd out the long tail.
+  const perProtocol = new Map<string, number>();
+  const varied = merged.filter((v) => {
+    const key = `${v.chainId}:${v.protocol.name}`;
+    const count = perProtocol.get(key) ?? 0;
+    if (count >= MAX_PER_PROTOCOL) return false;
+    perProtocol.set(key, count + 1);
+    return true;
+  });
+  return [...(varied.length ? varied : mockVaults), ...LIDO_VAULTS];
 }
 
 export async function getVaultById(id: string): Promise<Vault | undefined> {

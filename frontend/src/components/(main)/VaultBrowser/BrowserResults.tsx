@@ -2,8 +2,8 @@
 
 import { AnimatePresence } from "framer-motion";
 import { Bookmark, Search, SlidersHorizontal } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
-import { categories } from "@/lib/mock/earn";
 import { useSavedStore } from "@/stores/saved";
 import type { Vault } from "@/types/earn";
 import { VaultGrid } from "../VaultGrid";
@@ -15,42 +15,28 @@ import {
   type Sort,
 } from "../VaultToolbar/parts";
 
-const CHAIN_ORDER = [
-  "Arbitrum",
-  "Base",
-  "Ethereum",
-  "Optimism",
-  "Polygon",
-  "BNB Chain",
-  "Avalanche",
-];
-
-export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
+// Owns the header, the search/sort/saved toolbar and the results grid so the
+// toolbar icons sit inline with the title (no empty band). Chain is handled by
+// the sidebar, so the filter popover only sorts. Items arrive already filtered
+// by category and chain from the URL.
+export function BrowserResults({
+  items,
+  title,
+  sidebar,
+}: {
+  items: Vault[];
+  title: string;
+  sidebar: React.ReactNode;
+}) {
   const savedItems = useSavedStore((s) => s.items);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
-  const [category, setCategory] = useState("all");
-  const [chain, setChain] = useState("");
   const [sort, setSort] = useState<Sort>("tvl");
 
-  const chains = useMemo(() => {
-    const rank = (name: string) => {
-      const i = CHAIN_ORDER.indexOf(name);
-      return i === -1 ? CHAIN_ORDER.length : i;
-    };
-    return [...new Set(vaults.map((v) => v.chain))].sort(
-      (a, b) => rank(a) - rank(b),
-    );
-  }, [vaults]);
-
   const filtered = useMemo(() => {
-    let list = vaults;
-    if (category !== "all") {
-      list = list.filter((v) => v.categories.includes(category));
-    }
-    if (chain) list = list.filter((v) => v.chain === chain);
+    let list = items;
     if (savedOnly) {
       list = list.filter((v) => savedItems.some((s) => s.id === v.id));
     }
@@ -65,29 +51,25 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
     return [...list].sort((a, b) =>
       sort === "apy" ? b.apy - a.apy : b.tvlUsd - a.tvlUsd,
     );
-  }, [vaults, category, chain, savedOnly, query, sort, savedItems]);
-
-  const filtersActive = !!chain || sort !== "tvl";
+  }, [items, savedOnly, query, sort, savedItems]);
 
   return (
-    <div>
-      <div className="flex items-center gap-3">
-        <div className="flex flex-1 items-center gap-2 overflow-x-auto text-sm">
-          <Chip active={category === "all"} onClick={() => setCategory("all")}>
-            All
-          </Chip>
-          {categories.slice(1).map((label) => {
-            const slug = label.toLowerCase().replace(/\s+/g, "-");
-            return (
-              <Chip
-                key={label}
-                active={category === slug}
-                onClick={() => setCategory(slug)}
-              >
-                {label}
-              </Chip>
-            );
-          })}
+    <section>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
+              alt="Maroon"
+              width={28}
+              height={25}
+            />
+            <h1 className="text-2xl font-semibold">{title}</h1>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {items.length} vault{items.length === 1 ? "" : "s"} · Earn in one
+            tap.
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
           <IconBtn
@@ -100,7 +82,7 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
           <div className="relative">
             <IconBtn
               label="Filters"
-              active={filterOpen || filtersActive}
+              active={filterOpen || sort !== "tvl"}
               onClick={() => setFilterOpen((o) => !o)}
             >
               <SlidersHorizontal className="size-4" />
@@ -108,9 +90,6 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
             <AnimatePresence>
               {filterOpen ? (
                 <FilterPopover
-                  chains={chains}
-                  chain={chain}
-                  setChain={setChain}
                   sort={sort}
                   setSort={setSort}
                   onClose={() => setFilterOpen(false)}
@@ -130,33 +109,16 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
 
       <SearchField open={searchOpen} query={query} setQuery={setQuery} />
 
-      <div className="mt-4">
-        {filtered.length ? (
-          <VaultGrid items={filtered} />
-        ) : (
-          <Empty savedOnly={savedOnly} />
-        )}
+      <div className="mt-5 grid gap-6 lg:grid-cols-[220px_1fr]">
+        {sidebar}
+        <div>
+          {filtered.length ? (
+            <VaultGrid items={filtered} />
+          ) : (
+            <Empty savedOnly={savedOnly} />
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-    >
-      {children}
-    </button>
+    </section>
   );
 }

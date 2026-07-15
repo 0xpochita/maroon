@@ -14,14 +14,14 @@ export function VaultCard({ vault }: { vault: Vault }) {
       <div className="mt-auto flex gap-2">
         <Link
           href={`/vault/${vault.id}`}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary/10 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary py-2 text-[13px] font-semibold text-white shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)]"
         >
-          <Info className="size-4" />
+          <Info className="size-3.5" />
           View details
         </Link>
         <EarnButton
           vault={vault}
-          className="flex flex-1 items-center justify-center rounded-xl bg-success/10 py-3 text-sm font-semibold text-success transition-colors hover:bg-success/20"
+          className="flex flex-1 items-center justify-center rounded-lg bg-success py-2 text-[13px] font-semibold text-white shadow-[0_3px_0_0_var(--color-success-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-success-hover)]"
         >
           Earn
         </EarnButton>
