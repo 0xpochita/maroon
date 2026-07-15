@@ -25,7 +25,12 @@ const MENU: MenuItem[] = [
 export function ProfileMenu() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover-to-open wrapper; the inner button stays keyboard and click accessible
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
         aria-label="Account"
@@ -33,7 +38,9 @@ export function ProfileMenu() {
         className="flex items-center gap-1"
       >
         <span className="size-9 rounded-full bg-gradient-to-br from-primary to-warning" />
-        <ChevronDown className="size-4 text-muted-foreground" />
+        <ChevronDown
+          className={`size-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       <AnimatePresence>
         {open ? <ProfileDropdown onClose={() => setOpen(false)} /> : null}
@@ -48,21 +55,14 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
   const address = useAccountStore((s) => s.address);
   const logout = useAccountStore((s) => s.logout);
   return (
-    <>
-      <button
-        type="button"
-        aria-hidden
-        tabIndex={-1}
-        onClick={onClose}
-        className="fixed inset-0 z-40 cursor-default"
-      />
-      <motion.div
-        className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface p-2 shadow-xl"
-        initial={{ opacity: 0, scale: 0.96, y: -4 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: -4 }}
-        transition={{ duration: 0.15 }}
-      >
+    <motion.div
+      className="absolute right-0 top-full z-50 w-64 pt-2"
+      initial={{ opacity: 0, scale: 0.96, y: -4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96, y: -4 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+    >
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface p-2 shadow-xl">
         <div className="flex items-center gap-2 px-2 py-2">
           <span className="size-8 rounded-full bg-gradient-to-br from-primary to-warning" />
           <span className="font-mono text-sm font-semibold">
@@ -103,8 +103,8 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
           <LogOut className="size-4" />
           Log out
         </button>
-      </motion.div>
-    </>
+      </div>
+    </motion.div>
   );
 }
 
