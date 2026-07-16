@@ -25,7 +25,7 @@ export function CategoryNav() {
 
   return (
     <nav className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-6 overflow-x-auto px-6 py-3 text-sm">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-4 overflow-x-auto px-4 py-3 text-sm sm:gap-6 sm:px-6">
         {ROUTE_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive =

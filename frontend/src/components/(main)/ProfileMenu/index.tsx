@@ -56,7 +56,7 @@ function ProfileDropdown({ onClose }: { onClose: () => void }) {
   const logout = useAccountStore((s) => s.logout);
   return (
     <motion.div
-      className="absolute right-0 top-full z-50 w-64 pt-2"
+      className="absolute right-0 top-full z-50 w-[min(16rem,calc(100vw-1.5rem))] pt-2"
       initial={{ opacity: 0, scale: 0.96, y: -4 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96, y: -4 }}

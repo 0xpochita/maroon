@@ -36,7 +36,7 @@ export async function VaultDetails({ id }: { id: string }) {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-24 lg:pb-0">
       <Link
         href="/defi"
         className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -71,22 +71,25 @@ export async function VaultDetails({ id }: { id: string }) {
             />
           </div>
 
-          <section className="rounded-2xl border border-border bg-surface p-5">
+          <div>
             <h2 className="text-sm font-semibold">How it works</h2>
-            <ol className="mt-4 flex flex-col gap-4">
+            <div className="mt-3 flex flex-col gap-3">
               {steps.map((step, index) => (
-                <li key={step.title} className="flex gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                <div
+                  key={step.title}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-colors hover:bg-muted/40"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-primary">
                     {index + 1}
                   </span>
                   <div>
-                    <p className="text-sm font-medium">{step.title}</p>
+                    <p className="text-sm font-semibold">{step.title}</p>
                     <p className="text-sm text-muted-foreground">{step.desc}</p>
                   </div>
-                </li>
+                </div>
               ))}
-            </ol>
-          </section>
+            </div>
+          </div>
 
           <section className="rounded-2xl border border-border bg-surface p-5">
             <h2 className="text-sm font-semibold">Yield over time</h2>
@@ -135,7 +138,7 @@ export async function VaultDetails({ id }: { id: string }) {
           </section>
         </div>
 
-        <aside>
+        <aside className="hidden lg:block">
           <div className="sticky top-6 rounded-2xl border border-border bg-surface p-5">
             <p className="text-sm text-muted-foreground">Estimated yield</p>
             <p className="flex items-baseline gap-1 text-3xl font-bold text-success">
@@ -155,6 +158,25 @@ export async function VaultDetails({ id }: { id: string }) {
             </p>
           </div>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border bg-surface/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        <div>
+          <p className="text-xs text-muted-foreground">Estimated yield</p>
+          <p className="text-lg font-bold text-success">
+            {formatPercent(vault.apy)}
+            <span className="text-xs font-medium text-muted-foreground">
+              {" "}
+              / year
+            </span>
+          </p>
+        </div>
+        <EarnButton
+          vault={vault}
+          className="shrink-0 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_3px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_1px_0_0_var(--color-primary-hover)]"
+        >
+          Earn now
+        </EarnButton>
       </div>
     </div>
   );

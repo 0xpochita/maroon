@@ -72,7 +72,7 @@ export function AllVaultsBrowser({ vaults }: { vaults: Vault[] }) {
   return (
     <div>
       <div className="flex items-center gap-3">
-        <div className="flex flex-1 items-center gap-2 overflow-x-auto text-sm">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto text-sm">
           <Chip active={category === "all"} onClick={() => setCategory("all")}>
             All
           </Chip>

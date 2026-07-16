@@ -56,15 +56,18 @@ export function BrowserResults({
   return (
     <section>
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2.5">
             <Image
               src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
               alt="Maroon"
               width={28}
               height={25}
+              className="shrink-0"
             />
-            <h1 className="text-2xl font-semibold">{title}</h1>
+            <h1 className="truncate text-xl font-semibold sm:text-2xl">
+              {title}
+            </h1>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             {items.length} vault{items.length === 1 ? "" : "s"} · Earn in one

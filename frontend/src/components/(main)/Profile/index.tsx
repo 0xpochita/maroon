@@ -115,8 +115,8 @@ function ProfileCard({
       </div>
       <div className="mt-6 grid grid-cols-3 divide-x divide-border">
         {stats.map((stat) => (
-          <div key={stat.label} className="px-4 first:pl-0">
-            <p className="text-lg font-bold">{stat.value}</p>
+          <div key={stat.label} className="px-3 first:pl-0 sm:px-4">
+            <p className="text-base font-bold sm:text-lg">{stat.value}</p>
             <p className="text-xs text-muted-foreground">{stat.label}</p>
           </div>
         ))}

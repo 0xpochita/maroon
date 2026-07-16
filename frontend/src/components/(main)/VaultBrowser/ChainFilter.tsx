@@ -44,7 +44,7 @@ export function ChainFilter({
       <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Chains
       </p>
-      <ul className="space-y-1">
+      <ul className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0">
         <FilterRow
           href={buildHref(category)}
           active={!chain}
@@ -91,10 +91,10 @@ function FilterRow({
   children: React.ReactNode;
 }) {
   return (
-    <li>
+    <li className="shrink-0">
       <Link
         href={href}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted/60"}`}
+        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border px-3 py-2 text-sm transition-colors lg:gap-3 lg:rounded-lg lg:border-0 ${active ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted/60"}`}
       >
         {children}
         <span className="flex-1">{label}</span>

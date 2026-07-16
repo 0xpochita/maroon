@@ -39,7 +39,7 @@ export function SavedMenu() {
               className="fixed inset-0 z-40 cursor-default"
             />
             <motion.div
-              className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl"
+              className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl"
               initial={{ opacity: 0, scale: 0.96, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -4 }}
@@ -52,7 +52,7 @@ export function SavedMenu() {
                 </span>
               </div>
               {items.length ? (
-                <ul className="max-h-80 overflow-y-auto">
+                <ul className="max-h-[70vh] overflow-y-auto">
                   {items.map((vault) => (
                     <SavedRow
                       key={vault.id}

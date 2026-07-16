@@ -132,7 +132,7 @@ function FeaturedChart({ featured }: { featured: Vault[] }) {
           </span>
         ))}
       </div>
-      <div className="mt-3 min-h-48 flex-1">
+      <div className="mt-3 min-h-40 flex-1 sm:min-h-48">
         <YieldChart featured={featured} />
       </div>
     </div>

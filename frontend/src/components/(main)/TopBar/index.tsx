@@ -14,7 +14,7 @@ import { WalletMenu } from "../WalletMenu";
 export function TopBar() {
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-6 py-3">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6">
         <Brand />
         <SearchField />
         <TopBarActions />
@@ -40,7 +40,7 @@ function Brand() {
 
 function SearchField() {
   return (
-    <div className="flex w-full max-w-xl items-center gap-2 rounded-full border border-border bg-muted px-4 py-2.5">
+    <div className="hidden w-full max-w-xl items-center gap-2 rounded-full border border-border bg-muted px-4 py-2.5 sm:flex">
       <Search className="size-4 text-muted-foreground" />
       <input
         type="search"
@@ -62,7 +62,7 @@ function TopBarActions() {
   }
 
   return (
-    <div className="ml-auto flex items-center gap-3">
+    <div className="ml-auto flex items-center gap-2 sm:gap-3">
       <Stat label="Balance" value={formatUsd(balanceUsd ?? 0)} />
       <button
         type="button"
@@ -71,8 +71,10 @@ function TopBarActions() {
       >
         Deposit
       </button>
-      <SavedMenu />
-      <WalletMenu />
+      <div className="hidden items-center gap-2 sm:flex sm:gap-3">
+        <SavedMenu />
+        <WalletMenu />
+      </div>
       <NotificationMenu />
       <ProfileMenu />
     </div>

@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Suspense>
           <CategoryNav />
         </Suspense>
-        <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-6">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 sm:px-6 sm:py-6">
           {children}
         </main>
         <Footer />

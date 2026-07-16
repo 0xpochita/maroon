@@ -51,7 +51,7 @@ export function EarnModal({
         exit={{ opacity: 0 }}
       />
       <motion.div
-        className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-surface p-6 shadow-xl"
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}

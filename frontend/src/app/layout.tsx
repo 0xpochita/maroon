@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import { StoreInitializer } from "@/components/providers/StoreInitializer";
 import "./globals.css";
@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Maroon - Earn yield in one tap",
   description:
     "Earn real DeFi yield in one tap. No wallet, gas, or chains to manage.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

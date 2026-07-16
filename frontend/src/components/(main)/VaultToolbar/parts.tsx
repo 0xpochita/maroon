@@ -109,7 +109,7 @@ export function FilterPopover({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: -4 }}
         transition={{ duration: 0.15 }}
-        className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-border bg-surface p-2 shadow-xl"
+        className="absolute right-0 z-50 mt-2 w-[min(14rem,calc(100vw-1.5rem))] rounded-xl border border-border bg-surface p-2 shadow-xl"
       >
         <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Sort by

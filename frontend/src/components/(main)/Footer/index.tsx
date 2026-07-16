@@ -39,8 +39,8 @@ const SOCIALS = [
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-surface">
-      <div className="mx-auto max-w-[1440px] px-6 py-10">
-        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+      <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6">
+        <div className="flex flex-col gap-8 sm:gap-10 md:flex-row md:justify-between">
           <div className="max-w-xs">
             <Link href="/" className="flex items-center gap-2">
               <Image
