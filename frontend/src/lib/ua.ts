@@ -5,6 +5,7 @@ import {
 } from "@particle-network/universal-account-sdk";
 import { ethers, Signature } from "ethers";
 import type { Vault } from "@/types/earn";
+import { isUaChain } from "./ua-chains";
 
 export interface ParticleKeys {
   projectId: string;
@@ -39,7 +40,10 @@ export function newUniversalAccount(owner: string, keys: ParticleKeys) {
       version: UNIVERSAL_ACCOUNT_VERSION,
       ownerAddress: owner,
     },
-    tradeConfig: { slippageBps: 100, universalGas: true },
+    // Gas + fees are paid from the unified balance by default (chain
+    // abstraction); no extra flag needed. slippageBps covers cross-chain
+    // sourcing/swaps.
+    tradeConfig: { slippageBps: 100 },
   });
 }
 
@@ -132,6 +136,11 @@ export async function depositToVault({
 }): Promise<string> {
   if (!vault.chainId || !vault.vaultAddress) {
     throw new Error("Vault is not depositable");
+  }
+  if (!isUaChain(vault.chainId)) {
+    throw new Error(
+      `Deposit isn't supported on ${vault.chain} yet. Universal Accounts covers Ethereum, Base, Arbitrum and BNB Chain.`,
+    );
   }
   const { signer, owner } = await signerFor(magic);
 

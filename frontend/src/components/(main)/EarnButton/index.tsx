@@ -1,5 +1,6 @@
 "use client";
 
+import { isUaChain } from "@/lib/ua-chains";
 import { useAccountStore } from "@/stores/account";
 import { useUiStore } from "@/stores/ui";
 import type { Vault } from "@/types/earn";
@@ -19,6 +20,10 @@ export function EarnButton({
   const openAuth = useUiStore((s) => s.openAuth);
   const openEarn = useUiStore((s) => s.openEarn);
 
+  // Universal Accounts can only deposit on the chains it supports. Vaults on
+  // other chains still show (data layer) but the deposit is disabled.
+  const depositable = isUaChain(vault.chainId);
+
   const handleClick = () => {
     if (status !== "ready") {
       openAuth("login");
@@ -26,6 +31,19 @@ export function EarnButton({
     }
     openEarn(vault);
   };
+
+  if (!depositable) {
+    return (
+      <button
+        type="button"
+        disabled
+        title={`Deposit isn't supported on ${vault.chain} yet`}
+        className={`${className} cursor-not-allowed opacity-50`}
+      >
+        {children}
+      </button>
+    );
+  }
 
   return (
     <button type="button" onClick={handleClick} className={className}>
