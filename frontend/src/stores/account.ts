@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { create } from "zustand";
 import { getMagic } from "@/lib/magic";
+import { isUserRejection } from "@/lib/magicError";
 import { depositToVault, depositUsdc, newUniversalAccount } from "@/lib/ua";
 import type { Vault } from "@/types/earn";
 
@@ -15,6 +16,20 @@ export interface Asset {
 export interface DepositResult {
   ok: boolean;
   id?: string;
+  error?: string;
+}
+
+// One vault to deposit into as part of an AI plan.
+export interface PlanLegInput {
+  vault: Vault;
+  amountUsd: number;
+}
+
+export interface DepositPlanResult {
+  ok: boolean;
+  ids: string[];
+  /** Index of the leg that failed, if any (legs before it succeeded). */
+  failedAt?: number;
   error?: string;
 }
 
@@ -55,6 +70,7 @@ interface AccountState {
   refresh: () => Promise<void>;
   openOnramp: () => void;
   deposit: (vault: Vault, amountUsd: number) => Promise<DepositResult>;
+  depositPlan: (legs: PlanLegInput[]) => Promise<DepositPlanResult>;
 }
 
 export const useAccountStore = create<AccountState>((set, get) => ({
@@ -133,7 +149,8 @@ export const useAccountStore = create<AccountState>((set, get) => ({
       await magic.auth.loginWithEmailOTP({ email, showUI: true });
       await refresh();
     } catch (error) {
-      console.error("login failed", error);
+      // Closing the OTP popup is a normal cancel, not an error.
+      if (!isUserRejection(error)) console.error("login failed", error);
       set({ status: "disconnected" });
     }
   },
@@ -186,11 +203,57 @@ export const useAccountStore = create<AccountState>((set, get) => ({
       await refresh();
       return { ok: true, id };
     } catch (error) {
+      if (isUserRejection(error))
+        return { ok: false, error: "Deposit canceled" };
       console.error("deposit failed", error);
       return {
         ok: false,
         error: (error as Error)?.message ?? "Deposit failed",
       };
     }
+  },
+
+  // Executes an AI plan: one Universal Account deposit per leg, sequentially
+  // (each is its own signed tx). Refreshes balances once at the end.
+  depositPlan: async (legs) => {
+    const { keys, mock, refresh } = get();
+    if (mock) return { ok: true, ids: legs.map(() => "mock") };
+    const magic = getMagic(keys.magicApiKey ?? "");
+    if (!magic) return { ok: false, ids: [], error: "Wallet not ready" };
+    const k = {
+      projectId: keys.projectId ?? "",
+      clientKey: keys.clientKey ?? "",
+      appId: keys.appId ?? "",
+    };
+    const ids: string[] = [];
+    for (let i = 0; i < legs.length; i++) {
+      const { vault, amountUsd } = legs[i];
+      try {
+        const id =
+          vault.vaultAddress && vault.chainId
+            ? await depositToVault({ magic, keys: k, vault, amountUsd })
+            : await depositUsdc({
+                magic,
+                keys: k,
+                chainName: vault.chain,
+                amount: String(amountUsd),
+              });
+        ids.push(id);
+      } catch (error) {
+        if (!isUserRejection(error))
+          console.error("plan leg deposit failed", error);
+        await refresh();
+        return {
+          ok: false,
+          ids,
+          failedAt: i,
+          error: isUserRejection(error)
+            ? "Deposit canceled"
+            : ((error as Error)?.message ?? "Deposit failed"),
+        };
+      }
+    }
+    await refresh();
+    return { ok: true, ids };
   },
 }));

@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { TrendingUp } from "lucide-react";
+import { Sparkles, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { categories } from "@/lib/mock/earn";
@@ -26,6 +26,13 @@ export function CategoryNav() {
   return (
     <nav className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-[1440px] items-center gap-4 overflow-x-auto px-4 py-3 text-sm sm:gap-6 sm:px-6">
+        <Link
+          href="/invest"
+          className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 font-semibold transition-colors ${pathname === "/invest" ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary hover:bg-primary/20"}`}
+        >
+          <Sparkles className="size-4" />
+          Invest with AI
+        </Link>
         {ROUTE_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive =
