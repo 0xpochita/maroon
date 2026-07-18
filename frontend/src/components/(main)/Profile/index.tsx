@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { formatUsd } from "@/lib/format";
+import { formatAmount, formatUsd } from "@/lib/format";
 import { getPositions, type Position } from "@/lib/lifi";
 import { tokenLogo } from "@/lib/tokens";
 import { type Asset, useAccountStore } from "@/stores/account";
@@ -190,10 +190,7 @@ function ActivitySection({
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{asset.tokenType}</p>
                   <p className="text-xs text-muted-foreground">
-                    {asset.amount.toLocaleString(undefined, {
-                      maximumFractionDigits: 4,
-                    })}{" "}
-                    {asset.tokenType}
+                    {formatAmount(asset.amount)} {asset.tokenType}
                   </p>
                 </div>
                 <p className="text-sm font-medium">

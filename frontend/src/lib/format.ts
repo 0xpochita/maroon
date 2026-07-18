@@ -19,6 +19,12 @@ export const formatCompactUsd = (value: number): string => {
   return `$${value.toFixed(0)}`;
 };
 
+// Token amount with a pinned locale so server and client render identically
+// (an undefined locale uses the runtime's default and can cause hydration
+// mismatches once account state is ever SSR'd).
+export const formatAmount = (value: number, maxFractionDigits = 4): string =>
+  value.toLocaleString("en-US", { maximumFractionDigits: maxFractionDigits });
+
 export const formatPercent = (value: number): string => `${value.toFixed(2)}%`;
 
 export const formatCents = (value: number): string => `${value.toFixed(2)}¢`;

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { formatUsd } from "@/lib/format";
+import { formatAmount, formatUsd } from "@/lib/format";
 import { tokenLogo } from "@/lib/tokens";
 import { type Asset, useAccountStore } from "@/stores/account";
 import { useUiStore } from "@/stores/ui";
@@ -207,8 +207,7 @@ function AssetRow({ asset }: { asset: Asset }) {
       </div>
       <div className="text-right">
         <p className="text-sm font-medium">
-          {asset.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })}{" "}
-          {asset.tokenType}
+          {formatAmount(asset.amount)} {asset.tokenType}
         </p>
         <p className="text-xs text-muted-foreground">
           {formatUsd(asset.amountInUSD)}
