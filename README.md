@@ -141,36 +141,36 @@ Every deposit is signed by a Magic embedded wallet, executed by a Particle Unive
 ```mermaid
 sequenceDiagram
     participant User
-    participant App as Maroon (Frontend)
-    participant Magic as Magic (embedded wallet)
+    participant App as Maroon Frontend
+    participant Magic as Magic embedded wallet
     participant UA as Particle Universal Account
     participant LiFi as LI.FI Composer
     participant Chain as Vault Chain
 
     User->>App: 1. Log in with email
     App->>Magic: 2. loginWithEmailOTP
-    Magic-->>App: 3. embedded EOA + provider
-    User->>App: 4. Pick vault, token, amount -> Confirm
-    App->>LiFi: 5. Quote (fromToken -> toToken = vault)
-    LiFi-->>App: 6. transactionRequest {to, data, value}
-    App->>UA: 7. createUniversalTransaction (expectTokens + calldata)
-    App->>Magic: 8. sign EIP-7702 authorization + rootHash
-    UA->>Chain: 9. sendTransaction - source across chains, deposit
-    Chain-->>User: 10. Position live; tx shown with explorer + LI.FI Scan
+    Magic-->>App: 3. embedded EOA and provider
+    User->>App: 4. Pick vault, token, amount, Confirm
+    App->>LiFi: 5. Quote fromToken to vault
+    LiFi-->>App: 6. transactionRequest to data value
+    App->>UA: 7. createUniversalTransaction with calldata
+    App->>Magic: 8. sign EIP-7702 authorization and rootHash
+    UA->>Chain: 9. sendTransaction, source across chains, deposit
+    Chain-->>User: 10. Position live, tx with explorer and LI.FI Scan
 ```
 
 ### Chain Abstraction
 
 ```mermaid
 graph TD
-    LOGIN[Email login<br/>Magic embedded wallet] --> EOA[User EOA]
-    EOA -->|EIP-7702 upgrade in place| UA[Universal Account<br/>one balance]
-    UA --> ETH[Ethereum]
-    UA --> BASE[Base]
-    UA --> ARB[Arbitrum]
-    UA --> BNB[BNB Chain]
-    BAL[Any token: USDC / USDT / ETH / BNB / SOL] --> UA
-    UA -->|LI.FI Composer| VAULT[Vault deposit<br/>gas paid from balance]
+    LOGIN["Email login<br/>Magic embedded wallet"] --> EOA["User EOA"]
+    EOA -->|"EIP-7702 upgrade in place"| UA["Universal Account<br/>one balance"]
+    UA --> ETH["Ethereum"]
+    UA --> BASE["Base"]
+    UA --> ARB["Arbitrum"]
+    UA --> BNB["BNB Chain"]
+    BAL["Any token: USDC, USDT, ETH, BNB, SOL"] --> UA
+    UA -->|"LI.FI Composer"| VAULT["Vault deposit<br/>gas paid from balance"]
 
     style UA fill:#5b6ef5,color:#fff
     style VAULT fill:#16a34a,color:#fff
