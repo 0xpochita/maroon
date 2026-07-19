@@ -280,7 +280,7 @@ Primary assets (unified balance, sourceable across chains): **ETH, USDT, USDC, S
 |---|---|
 | **Track** | Particle Network - Universal Accounts Track (EIP-7702 mode) |
 | **Bonus** | Magic Labs - Embedded Wallet Bonus Challenge (best / most creative embedded-wallet UX) |
-| **Sponsors** | Particle Network · Magic Labs · LI.FI |
+| **Sponsors** | Particle Network · Magic Labs |
 | **Live Demo** | [maroon-finance.vercel.app](https://maroon-finance.vercel.app) |
 
 **Universal Accounts Track** - Maroon is built with Particle Network's Universal Accounts SDK in EIP-7702 mode. The user's EOA becomes a chain-abstracted account in place - one login, one balance, transactions on any chain with any asset. No new address, no migration, no smart-account deployment. Every vault deposit is a cross-chain operation moving value through the Universal Account.
