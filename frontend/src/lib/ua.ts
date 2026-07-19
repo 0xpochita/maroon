@@ -1,6 +1,6 @@
 import {
   CHAIN_ID,
-  type SUPPORTED_TOKEN_TYPE,
+  SUPPORTED_TOKEN_TYPE,
   UNIVERSAL_ACCOUNT_VERSION,
   UniversalAccount,
 } from "@particle-network/universal-account-sdk";
@@ -203,7 +203,11 @@ export async function depositToVault({
     // balance (by TYPE, not address) plus its human amount.
     expectTokens: [
       {
-        type: (fromToken ?? "USDC").toLowerCase() as SUPPORTED_TOKEN_TYPE,
+        type: SUPPORTED_TOKEN_TYPE[
+          (
+            fromToken ?? "USDC"
+          ).toUpperCase() as keyof typeof SUPPORTED_TOKEN_TYPE
+        ],
         amount: String(amountUsd),
       },
     ],

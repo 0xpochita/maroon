@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Check, ExternalLink, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -262,11 +262,11 @@ function TokenLogo({ symbol, size = 18 }: { symbol: string; size?: number }) {
   );
 }
 
-const SUCCESS_STAGGER = {
+const SUCCESS_STAGGER: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.07, delayChildren: 0.06 } },
 };
-const SUCCESS_ITEM = {
+const SUCCESS_ITEM: Variants = {
   hidden: { opacity: 0, y: 8 },
   show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
 };

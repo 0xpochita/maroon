@@ -1,9 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowLeft, Info } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, Info, X } from "lucide-react";
+import { useState } from "react";
 import { formatPercent, formatUsd } from "@/lib/format";
 import { riskMeta } from "@/lib/risk";
+import { useAccountStore } from "@/stores/account";
 import type { PlanLeg } from "@/types/invest";
 import { VaultAvatar } from "../VaultAvatar";
 import {
@@ -24,11 +26,14 @@ const NUDGES: { id: Tone; label: string }[] = [
 
 export function PlanScreen({ flow }: { flow: InvestFlow }) {
   const { plan } = flow;
+  const balanceUsd = useAccountStore((s) => s.balanceUsd) ?? 0;
+  const [showSim, setShowSim] = useState(false);
   if (!plan) return null;
   const meta = riskMeta(plan.riskScore);
+  const insufficient = balanceUsd < plan.amountUsd;
 
   return (
-    <div className="mx-auto w-full max-w-lg pb-28">
+    <div className="mx-auto w-full max-w-lg pb-8">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -139,22 +144,161 @@ export function PlanScreen({ flow }: { flow: InvestFlow }) {
         </p>
       ) : null}
 
-      {/* Pinned invest bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto max-w-lg">
-          <p className="mb-2 text-center text-xs text-muted-foreground">
-            No fees · gas on us
-          </p>
+      {/* Invest CTA (inline) */}
+      <div className="mt-6">
+        <p className="mb-2 text-center text-xs text-muted-foreground">
+          No fees · gas on us · paying from {formatUsd(balanceUsd)} balance
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowSim(true)}
+          disabled={flow.rethinking || flow.busy || insufficient}
+          className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)] disabled:opacity-50 disabled:shadow-none"
+        >
+          {insufficient
+            ? `Insufficient balance (${formatUsd(balanceUsd)})`
+            : `Deposit ${formatUsd(plan.amountUsd)}`}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showSim ? (
+          <SimModal
+            flow={flow}
+            balanceUsd={balanceUsd}
+            insufficient={insufficient}
+            onClose={() => setShowSim(false)}
+          />
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Deposit simulation: previews the per-vault split, total and balance check
+// before running the real multi-leg deposit. Confirm is disabled when the
+// unified balance can't cover the plan.
+function SimModal({
+  flow,
+  balanceUsd,
+  insufficient,
+  onClose,
+}: {
+  flow: InvestFlow;
+  balanceUsd: number;
+  insufficient: boolean;
+  onClose: () => void;
+}) {
+  const { plan } = flow;
+  if (!plan) return null;
+  const chains = new Set(plan.legs.map((l) => l.vault.chain)).size;
+  const confirm = () => {
+    onClose();
+    flow.place();
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.button
+        type="button"
+        aria-label="Close"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-foreground/40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
+      <motion.div
+        className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-surface p-6 shadow-xl"
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.15 }}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Review deposit</h2>
           <button
             type="button"
-            onClick={flow.place}
-            disabled={flow.rethinking || flow.busy}
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)] disabled:opacity-50 disabled:shadow-none"
+            aria-label="Close"
+            onClick={onClose}
+            className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted"
           >
-            {flow.busy ? "Securing…" : `Deposit ${formatUsd(plan.amountUsd)}`}
+            <X className="size-4" />
           </button>
         </div>
-      </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Simulating {plan.legs.length} deposits across {chains} chain
+          {chains === 1 ? "" : "s"} via your Universal Account.
+        </p>
+
+        <div className="mt-4 space-y-2">
+          {plan.legs.map((leg) => (
+            <div
+              key={leg.vault.id}
+              className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5"
+            >
+              <VaultAvatar vault={leg.vault} size={28} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">
+                  {leg.vault.name ?? leg.vault.protocol.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {leg.vault.chain} · {formatPercent(leg.vault.apy)} APY
+                </p>
+              </div>
+              <p className="text-sm font-medium">{formatUsd(leg.amountUsd)}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm">
+          <SimRow label="Total deposit" value={formatUsd(plan.amountUsd)} />
+          <SimRow label="Paying from balance" value={formatUsd(balanceUsd)} />
+          <SimRow
+            label="Blended yield"
+            value={`~${formatPercent(plan.blendedApy)} / year`}
+            accent
+          />
+          <SimRow label="Network fee" value="Free · gas on us" />
+        </div>
+
+        {insufficient ? (
+          <p className="mt-4 rounded-lg bg-warning-subtle px-3 py-2 text-center text-xs text-warning">
+            Balance too low. You need {formatUsd(plan.amountUsd)} but have{" "}
+            {formatUsd(balanceUsd)}.
+          </p>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={confirm}
+          disabled={insufficient || flow.busy}
+          className="mt-5 w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_4px_0_0_var(--color-primary-hover)] transition-all hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_0_var(--color-primary-hover)] disabled:opacity-50 disabled:shadow-none"
+        >
+          {insufficient
+            ? "Insufficient balance"
+            : `Confirm deposit ${formatUsd(plan.amountUsd)}`}
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
+function SimRow({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={accent ? "font-semibold text-success" : "font-medium"}>
+        {value}
+      </span>
     </div>
   );
 }
