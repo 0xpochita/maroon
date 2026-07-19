@@ -19,7 +19,8 @@ export async function GET(
   try {
     const res = await fetch(
       `https://earn.li.fi/v1/portfolio/${address}/positions`,
-      { headers: { "x-lifi-api-key": key }, next: { revalidate: 60 } },
+      // No cache: a fresh deposit must show as soon as LI.FI indexes it.
+      { headers: { "x-lifi-api-key": key }, cache: "no-store" },
     );
     if (!res.ok) return NextResponse.json({ positions: [] });
     const data = await res.json();
@@ -34,7 +35,9 @@ export async function GET(
     );
 
     const positions: Position[] = raw
-      .filter((p) => p?.address && Number(p?.balanceUsd ?? 0) > 0)
+      // Keep any position with a vault address; a null/0 balance can be a
+      // just-deposited position LI.FI is still valuing.
+      .filter((p) => p?.address)
       .map((p) => {
         const match = byAddress.get(String(p.address).toLowerCase());
         const chainId = Number(p.chainId);

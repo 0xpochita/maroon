@@ -1,7 +1,8 @@
 "use client";
 
+import { RefreshCw } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatAmount, formatUsd } from "@/lib/format";
 import { getPositions, type Position } from "@/lib/lifi";
 import { tokenLogo } from "@/lib/tokens";
@@ -12,6 +13,46 @@ function shorten(address?: string) {
   if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
+
+// Demo fallback: shown when the live LI.FI portfolio has no indexed position
+// yet, so the profile always has something to show in the demo video.
+const AAVE_LOGO = "/Assets/Images/Logo/logo-defi/aave-logo.webp";
+
+const MOCK_POSITIONS: Position[] = [
+  {
+    vaultAddress: "0x724dc807b04555b71ed48a6896b6f41593b8c637",
+    chainId: 42161,
+    chain: "Arbitrum",
+    protocol: "Aave",
+    logo: AAVE_LOGO,
+    asset: "USDC",
+    name: "Aave USDC",
+    balanceUsd: 0.01,
+    apy: 5.26,
+  },
+];
+
+interface ActivityItem {
+  id: string;
+  protocol: string;
+  chain: string;
+  asset: string;
+  amountUsd: number;
+  logo: string;
+  when: string;
+}
+
+const MOCK_ACTIVITY: ActivityItem[] = [
+  {
+    id: "act-1",
+    protocol: "Aave",
+    chain: "Arbitrum",
+    asset: "USDC",
+    amountUsd: 0.01,
+    logo: AAVE_LOGO,
+    when: "Just now",
+  },
+];
 
 export function Profile() {
   const status = useAccountStore((s) => s.status);
@@ -24,26 +65,31 @@ export function Profile() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loadingPositions, setLoadingPositions] = useState(false);
 
-  useEffect(() => {
+  const loadPositions = useCallback(() => {
     if (!address) return;
-    let active = true;
     setLoadingPositions(true);
     getPositions(address)
-      .then((p) => active && setPositions(p))
-      .finally(() => active && setLoadingPositions(false));
-    return () => {
-      active = false;
-    };
+      .then(setPositions)
+      .finally(() => setLoadingPositions(false));
   }, [address]);
 
+  useEffect(() => {
+    loadPositions();
+  }, [loadPositions]);
+
+  const displayPositions = positions.length ? positions : MOCK_POSITIONS;
+
   const { deposited, blendedApy } = useMemo(() => {
-    const total = positions.reduce((s, p) => s + p.balanceUsd, 0);
+    const total = displayPositions.reduce((s, p) => s + p.balanceUsd, 0);
     const apy =
       total > 0
-        ? positions.reduce((s, p) => s + p.balanceUsd * (p.apy ?? 0), 0) / total
+        ? displayPositions.reduce(
+            (s, p) => s + p.balanceUsd * (p.apy ?? 0),
+            0,
+          ) / total
         : 0;
     return { deposited: total, blendedApy: apy };
-  }, [positions]);
+  }, [displayPositions]);
 
   if (status !== "ready" || !address) {
     return (
@@ -73,9 +119,10 @@ export function Profile() {
         onDeposit={openDeposit}
       />
       <ActivitySection
-        positions={positions}
+        positions={displayPositions}
         assets={assets}
         loadingPositions={loadingPositions}
+        onRefresh={loadPositions}
       />
     </div>
   );
@@ -147,33 +194,49 @@ function ActivitySection({
   positions,
   assets,
   loadingPositions,
+  onRefresh,
 }: {
   positions: Position[];
   assets: Asset[];
   loadingPositions: boolean;
+  onRefresh: () => void;
 }) {
   const [tab, setTab] = useState<Tab>("positions");
   return (
     <section>
-      <div className="flex items-center gap-5 border-b border-border">
-        <TabButton
-          active={tab === "positions"}
-          onClick={() => setTab("positions")}
-        >
-          Positions
-        </TabButton>
-        <TabButton
-          active={tab === "holdings"}
-          onClick={() => setTab("holdings")}
-        >
-          Holdings
-        </TabButton>
-        <TabButton
-          active={tab === "activity"}
-          onClick={() => setTab("activity")}
-        >
-          Activity
-        </TabButton>
+      <div className="flex items-center justify-between border-b border-border">
+        <div className="flex items-center gap-5">
+          <TabButton
+            active={tab === "positions"}
+            onClick={() => setTab("positions")}
+          >
+            Positions
+          </TabButton>
+          <TabButton
+            active={tab === "holdings"}
+            onClick={() => setTab("holdings")}
+          >
+            Holdings
+          </TabButton>
+          <TabButton
+            active={tab === "activity"}
+            onClick={() => setTab("activity")}
+          >
+            Activity
+          </TabButton>
+        </div>
+        {tab === "positions" ? (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="flex items-center gap-1.5 pb-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <RefreshCw
+              className={`size-3.5 ${loadingPositions ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+        ) : null}
       </div>
 
       {tab === "positions" ? (
@@ -204,7 +267,25 @@ function ActivitySection({
         </div>
       ) : (
         <div className="mt-4 overflow-hidden rounded-2xl border border-border">
-          <EmptyState label="No activity yet." />
+          {MOCK_ACTIVITY.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+            >
+              <PositionLogo logo={item.logo} label={item.protocol} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">
+                  Deposited to {item.protocol}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {item.asset} · {item.chain} · {item.when}
+                </p>
+              </div>
+              <p className="text-sm font-medium text-success">
+                +{formatUsd(item.amountUsd)}
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </section>

@@ -21,6 +21,15 @@ export const USDC_BY_ID: Record<number, string> = {
   137: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
 };
 
+// USDT per chain (6 dp on these, so USD maps 1:1 like USDC). BSC USDT is 18 dp
+// and intentionally omitted to avoid a decimals mismatch.
+export const USDT_BY_ID: Record<number, string> = {
+  1: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  42161: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+  10: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+  137: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+};
+
 // Arbitrum first, then other popular EVM chains. One fetch per chain so each is
 // represented in the grid and the chain filter.
 const POPULAR_CHAINS = [42161, 8453, 1, 10, 137, 56, 43114];

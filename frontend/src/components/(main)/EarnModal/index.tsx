@@ -1,15 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, ExternalLink, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { formatPercent, formatUsd } from "@/lib/format";
+import { explorerTx, lifiScanTx, shortenHash } from "@/lib/explorers";
+import { formatAmount, formatPercent, formatUsd } from "@/lib/format";
+import { PAY_TOKENS, payToken } from "@/lib/pay-tokens";
+import { tokenLogo } from "@/lib/tokens";
 import { useAccountStore } from "@/stores/account";
 import type { Vault } from "@/types/earn";
 import { VaultAvatar } from "../VaultAvatar";
-
-const CHIPS = [5, 10, 100, 200, 500];
 
 export function EarnModal({
   vault,
@@ -19,19 +21,41 @@ export function EarnModal({
   onClose: () => void;
 }) {
   const deposit = useAccountStore((s) => s.deposit);
-  const [amount, setAmount] = useState("100");
+  const assets = useAccountStore((s) => s.assets);
+  const initialToken = PAY_TOKENS.some((t) => t.symbol === vault.asset)
+    ? vault.asset
+    : "USDC";
+  const [token, setToken] = useState(initialToken);
+  const [amount, setAmount] = useState("");
   const [done, setDone] = useState(false);
+  const [txId, setTxId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const pt = payToken(token);
   const parsed = Number(amount) || 0;
   const yearly = (parsed * vault.apy) / 100;
+  const crossChain = token !== vault.asset;
+  const amountLabel = pt.stable
+    ? formatUsd(parsed)
+    : `${formatAmount(parsed)} ${pt.symbol}`;
+  const held = assets.find((a) => a.tokenType === token);
+  const available = held?.amount ?? 0;
+  const availableLabel = pt.stable
+    ? formatUsd(held?.amountInUSD ?? 0)
+    : `${formatAmount(available)} ${pt.symbol}`;
+
+  const selectToken = (symbol: string) => {
+    setToken(symbol);
+    setAmount("");
+  };
 
   const confirm = async () => {
     setSubmitting(true);
     setError(undefined);
-    const res = await deposit(vault, parsed);
+    const res = await deposit(vault, parsed, token);
     setSubmitting(false);
     if (res.ok) {
+      setTxId(res.id ?? "");
       setDone(true);
     } else {
       setError(res.error ?? "Deposit failed");
@@ -67,47 +91,82 @@ export function EarnModal({
         </button>
 
         {done ? (
-          <Success vault={vault} amount={parsed} onClose={onClose} />
+          <Success
+            vault={vault}
+            amount={amountLabel}
+            txHash={txId}
+            onClose={onClose}
+          />
         ) : (
           <>
             <Identity vault={vault} />
 
-            <label htmlFor="amount" className="mt-6 block text-sm font-medium">
-              Amount
-            </label>
-            <div className="mt-2 flex items-center gap-3 rounded-xl border border-border px-4 py-4">
-              <span className="text-2xl font-bold text-muted-foreground">
-                $
+            <div className="mt-6 flex items-center justify-between">
+              <label htmlFor="amount" className="text-sm font-medium">
+                Amount
+              </label>
+              <span className="text-xs text-muted-foreground">
+                Available: {availableLabel}
+                {available > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setAmount(String(available))}
+                    className="ml-2 font-semibold text-primary"
+                  >
+                    Max
+                  </button>
+                ) : null}
               </span>
+            </div>
+            <div className="mt-2 flex items-center gap-3 rounded-xl border border-border px-4 py-4">
+              <TokenLogo symbol={pt.symbol} size={28} />
               <input
                 id="amount"
                 type="text"
-                inputMode="numeric"
+                inputMode="decimal"
                 value={amount}
                 onChange={(event) => {
-                  const next = event.target.value;
-                  if (/^\d*$/.test(next)) {
-                    setAmount(next);
+                  // keep digits + a single decimal point; strip leading zeros
+                  // so "0" is replaced when the user types a real amount.
+                  let next = event.target.value.replace(/[^\d.]/g, "");
+                  const dot = next.indexOf(".");
+                  if (dot !== -1) {
+                    next =
+                      next.slice(0, dot + 1) +
+                      next.slice(dot + 1).replace(/\./g, "");
                   }
+                  next = next.replace(/^0+(?=\d)/, "");
+                  setAmount(next);
                 }}
                 placeholder="0"
                 className="min-w-0 flex-1 bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground"
               />
               <span className="shrink-0 text-sm text-muted-foreground">
-                Enter amount
+                {pt.stable ? "Enter amount" : pt.symbol}
               </span>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {CHIPS.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => setAmount(String(chip))}
-                  className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${parsed === chip ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground hover:text-foreground"}`}
-                >
-                  {formatUsd(chip)}
-                </button>
-              ))}
+            <div className="mt-4">
+              <p className="mb-2 text-sm font-medium">Pay with</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {PAY_TOKENS.map((t) => (
+                  <button
+                    key={t.symbol}
+                    type="button"
+                    onClick={() => selectToken(t.symbol)}
+                    className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${token === t.symbol ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <TokenLogo symbol={t.symbol} size={18} />
+                    {t.symbol}
+                  </button>
+                ))}
+              </div>
+              {crossChain ? (
+                <p className="mt-2 rounded-lg bg-primary-subtle px-3 py-2 text-xs text-primary">
+                  Cross-chain deposit · your {token} auto-converts to{" "}
+                  {vault.asset} on {vault.chain}. Routed by LI.FI + Universal
+                  Accounts.
+                </p>
+              ) : null}
             </div>
 
             <div className="mt-6 space-y-2 text-sm">
@@ -118,7 +177,11 @@ export function EarnModal({
               />
               <Row
                 label="You could earn"
-                value={`~${formatUsd(yearly)} / year`}
+                value={
+                  pt.stable
+                    ? `~${formatUsd(yearly)} / year`
+                    : `~${formatAmount(yearly)} ${pt.symbol} / year`
+                }
                 accent
               />
               <Row label="Network fee" value="Free" />
@@ -181,26 +244,96 @@ function Row({
   );
 }
 
+function TokenLogo({ symbol, size = 18 }: { symbol: string; size?: number }) {
+  const logo = tokenLogo(symbol);
+  if (!logo) {
+    return <span className="text-xs font-bold">{symbol.slice(0, 2)}</span>;
+  }
+  return (
+    <Image
+      src={logo}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className="shrink-0 rounded-full object-contain"
+      unoptimized={logo.startsWith("http")}
+    />
+  );
+}
+
+const SUCCESS_STAGGER = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.06 } },
+};
+const SUCCESS_ITEM = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
+};
+
 function Success({
   vault,
   amount,
+  txHash,
   onClose,
 }: {
   vault: Vault;
-  amount: number;
+  amount: string;
+  txHash?: string;
   onClose: () => void;
 }) {
+  const explorer = explorerTx(vault.chainId, txHash);
+  const lifi = lifiScanTx(txHash);
   return (
-    <div className="flex flex-col items-center gap-4 py-4 text-center">
-      <span className="flex size-14 items-center justify-center rounded-full bg-success/10 text-success">
+    <motion.div
+      className="flex flex-col items-center gap-4 py-4 text-center"
+      variants={SUCCESS_STAGGER}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.span
+        className="flex size-14 items-center justify-center rounded-full bg-success/10 text-success"
+        initial={{ scale: 0.4, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 320,
+          damping: 18,
+          delay: 0.05,
+        }}
+      >
         <Check className="size-7" />
-      </span>
-      <h2 className="text-xl font-semibold">Deposit confirmed</h2>
-      <p className="text-sm text-muted-foreground">
-        {formatUsd(amount)} is now earning {formatPercent(vault.apy)} on{" "}
+      </motion.span>
+      <motion.h2 variants={SUCCESS_ITEM} className="text-xl font-semibold">
+        Deposit confirmed
+      </motion.h2>
+      <motion.p
+        variants={SUCCESS_ITEM}
+        className="text-sm text-muted-foreground"
+      >
+        {amount} is now earning {formatPercent(vault.apy)} on{" "}
         {vault.protocol.name}.
-      </p>
-      <div className="mt-2 flex gap-2">
+      </motion.p>
+
+      {txHash ? (
+        <motion.div
+          variants={SUCCESS_ITEM}
+          className="w-full rounded-xl border border-border bg-muted/40 p-3"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Transaction</span>
+            <span className="font-mono text-xs">{shortenHash(txHash)}</span>
+          </div>
+          <div className="mt-2 flex gap-2">
+            {lifi ? <TxLink href={lifi} label="LI.FI Scan" /> : null}
+            {explorer ? (
+              <TxLink href={explorer.url} label={explorer.name} />
+            ) : null}
+          </div>
+        </motion.div>
+      ) : null}
+
+      <motion.div variants={SUCCESS_ITEM} className="mt-2 flex gap-2">
         <Link
           href="/profile"
           onClick={onClose}
@@ -215,7 +348,21 @@ function Success({
         >
           Done
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function TxLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+    >
+      {label}
+      <ExternalLink className="size-3" />
+    </a>
   );
 }

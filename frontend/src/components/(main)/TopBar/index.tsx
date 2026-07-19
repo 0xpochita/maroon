@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { formatUsd } from "@/lib/format";
 import { useAccountStore } from "@/stores/account";
 import { useUiStore } from "@/stores/ui";
@@ -17,9 +18,32 @@ export function TopBar() {
       <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6">
         <Brand />
         <SearchField />
-        <TopBarActions />
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <InvestWithAI />
+          <TopBarActions />
+        </div>
       </div>
     </header>
+  );
+}
+
+function InvestWithAI() {
+  const pathname = usePathname();
+  const active = pathname === "/invest";
+  return (
+    <Link
+      href="/invest"
+      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary hover:bg-primary/20"}`}
+    >
+      <Image
+        src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
+        alt=""
+        width={16}
+        height={16}
+        className="size-4 object-contain"
+      />
+      <span className="hidden sm:inline">Invest with AI</span>
+    </Link>
   );
 }
 
@@ -62,7 +86,7 @@ function TopBarActions() {
   }
 
   return (
-    <div className="ml-auto flex items-center gap-2 sm:gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <Stat label="Balance" value={formatUsd(balanceUsd ?? 0)} />
       <button
         type="button"
@@ -86,7 +110,7 @@ function AuthButtons() {
   const openAuth = useUiStore((s) => s.openAuth);
   const busy = status === "connecting";
   return (
-    <div className="ml-auto flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => openAuth("login")}

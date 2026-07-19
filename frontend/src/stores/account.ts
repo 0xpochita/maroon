@@ -69,7 +69,11 @@ interface AccountState {
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   openOnramp: () => void;
-  deposit: (vault: Vault, amountUsd: number) => Promise<DepositResult>;
+  deposit: (
+    vault: Vault,
+    amountUsd: number,
+    fromToken?: string,
+  ) => Promise<DepositResult>;
   depositPlan: (legs: PlanLegInput[]) => Promise<DepositPlanResult>;
 }
 
@@ -180,7 +184,7 @@ export const useAccountStore = create<AccountState>((set, get) => ({
     }
   },
 
-  deposit: async (vault, amountUsd) => {
+  deposit: async (vault, amountUsd, fromToken) => {
     const { keys, mock, refresh } = get();
     if (mock) return { ok: true, id: "mock" };
     const magic = getMagic(keys.magicApiKey ?? "");
@@ -193,7 +197,13 @@ export const useAccountStore = create<AccountState>((set, get) => ({
       };
       const id =
         vault.vaultAddress && vault.chainId
-          ? await depositToVault({ magic, keys: k, vault, amountUsd })
+          ? await depositToVault({
+              magic,
+              keys: k,
+              vault,
+              amountUsd,
+              fromToken,
+            })
           : await depositUsdc({
               magic,
               keys: k,

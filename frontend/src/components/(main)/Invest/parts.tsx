@@ -1,40 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
 import { LEG_COLORS } from "@/lib/risk";
 import type { PlanLeg } from "@/types/invest";
 
 // The AI copilot's persona name. Change here to rebrand the whole flow.
-export const AI_NAME = "MARAI";
+export const AI_NAME = "Maroon AI";
 
-// Gradient orb standing in for the copilot (Maroon ships no avatar image).
-export function AiOrb({
-  size = 32,
-  spin = false,
-}: {
-  size?: number;
-  spin?: boolean;
-}) {
+// Maroon logo standing in for the copilot avatar. `spin` is accepted for
+// backward compat but ignored (no animation).
+export function AiOrb({ size = 32 }: { size?: number; spin?: boolean }) {
   return (
-    <motion.span
-      className="relative inline-flex shrink-0 items-center justify-center rounded-full"
-      style={{
-        width: size,
-        height: size,
-        background:
-          "radial-gradient(120% 120% at 30% 25%, var(--color-primary) 0%, var(--color-high) 100%)",
-      }}
-      animate={spin ? { rotate: 360 } : undefined}
-      transition={
-        spin ? { duration: 8, ease: "linear", repeat: Infinity } : undefined
-      }
-    >
-      <Sparkles
-        className="text-primary-foreground"
-        style={{ width: size * 0.5, height: size * 0.5 }}
-      />
-    </motion.span>
+    <Image
+      src="/Assets/Images/Logo/logo-brands/maroon-logo.png"
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className="shrink-0 object-contain"
+      priority
+    />
   );
 }
 

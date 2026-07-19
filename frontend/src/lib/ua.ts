@@ -1,10 +1,12 @@
 import {
   CHAIN_ID,
+  type SUPPORTED_TOKEN_TYPE,
   UNIVERSAL_ACCOUNT_VERSION,
   UniversalAccount,
 } from "@particle-network/universal-account-sdk";
 import { ethers, Signature } from "ethers";
 import type { Vault } from "@/types/earn";
+import { payToken } from "./pay-tokens";
 import { isUaChain } from "./ua-chains";
 
 export interface ParticleKeys {
@@ -41,9 +43,9 @@ export function newUniversalAccount(owner: string, keys: ParticleKeys) {
       ownerAddress: owner,
     },
     // Gas + fees are paid from the unified balance by default (chain
-    // abstraction); no extra flag needed. slippageBps covers cross-chain
-    // sourcing/swaps.
-    tradeConfig: { slippageBps: 100 },
+    // abstraction). Higher slippage (3%) avoids simulation reverts on the
+    // swap+deposit zap, especially for small amounts / thinner routes.
+    tradeConfig: { slippageBps: 300 },
   });
 }
 
@@ -127,12 +129,15 @@ export async function depositToVault({
   keys,
   vault,
   amountUsd,
+  fromToken,
 }: {
   // biome-ignore lint/suspicious/noExplicitAny: Magic instance is untyped here
   magic: any;
   keys: ParticleKeys;
   vault: Vault;
   amountUsd: number;
+  // Source token symbol (USDC/USDT/ETH). LI.FI converts to the vault asset.
+  fromToken?: string;
 }): Promise<string> {
   if (!vault.chainId || !vault.vaultAddress) {
     throw new Error("Vault is not depositable");
@@ -144,7 +149,12 @@ export async function depositToVault({
   }
   const { signer, owner } = await signerFor(magic);
 
-  const amountBase = BigInt(Math.round(amountUsd * 1e6)).toString();
+  // Amount is denominated in the source token; use its decimals. `fromChainId`
+  // tells the quote which chain to source from (BNB/SOL live on their own chain).
+  const pt = payToken(fromToken);
+  const amountBase = BigInt(
+    Math.round(amountUsd * 10 ** pt.decimals),
+  ).toString();
   const res = await fetch("/api/lifi/quote", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -154,25 +164,50 @@ export async function depositToVault({
       tokenAddress: vault.tokenAddress,
       fromAddress: owner,
       amount: amountBase,
+      fromToken,
+      fromChainId: pt.nativeChainId,
     }),
   });
   const quote = await res.json();
   const txRequest = quote?.transactionRequest;
   if (!txRequest) throw new Error(quote?.error ?? "No deposit route found");
 
+  // Prepend an ERC20 approval for the LI.FI router (skip for native tokens) so
+  // the router's transferFrom doesn't revert during simulation.
+  const NATIVE = "0x0000000000000000000000000000000000000000";
+  const transactions: { to: string; data: string; value: string }[] = [];
+  if (
+    quote.approvalAddress &&
+    quote.fromTokenAddress &&
+    quote.fromTokenAddress.toLowerCase() !== NATIVE
+  ) {
+    const approveData = new ethers.Interface([
+      "function approve(address spender, uint256 amount)",
+    ]).encodeFunctionData("approve", [quote.approvalAddress, quote.fromAmount]);
+    transactions.push({
+      to: quote.fromTokenAddress,
+      data: approveData,
+      value: "0x0",
+    });
+  }
+  transactions.push({
+    to: txRequest.to,
+    data: txRequest.data,
+    value: txRequest.value ?? "0x0",
+  });
+
   const ua = newUniversalAccount(owner, keys);
   const tx = await ua.createUniversalTransaction({
     chainId: vault.chainId,
+    // expectTokens = the source token the UA should pull from the unified
+    // balance (by TYPE, not address) plus its human amount.
     expectTokens: [
-      { tokenAddress: vault.tokenAddress, amount: String(amountUsd) },
-    ],
-    transactions: [
       {
-        to: txRequest.to,
-        data: txRequest.data,
-        value: txRequest.value ?? "0x0",
+        type: (fromToken ?? "USDC").toLowerCase() as SUPPORTED_TOKEN_TYPE,
+        amount: String(amountUsd),
       },
     ],
+    transactions,
   });
   return finalize(ua, magic, signer, tx);
 }
